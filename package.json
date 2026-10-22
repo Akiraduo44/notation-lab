@@ -1,0 +1,18 @@
+{
+  "name": "notation-lab",
+  "version": "1.0.0",
+  "private": false,
+  "description": "A free browser-based music notation practice app.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "npm run test:interaction && npm run test:browser && npm run test:ads",
+    "test:interaction": "node tools/test_interaction.cjs",
+    "test:browser": "node tools/test_browser_compat.cjs",
+    "test:ads": "node tools/test_ads.cjs",
+    "build:compat": "bash tools/build_compat.sh"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}
