@@ -1575,7 +1575,7 @@ function buildCourse() {
       ["Name intervals on the staff", "Count both the starting and ending letter names for interval number. Then count semitones to determine quality: major, minor, perfect, augmented or diminished. A third spans three letter names even when chromatic."],
       ["Hear intervals", "In Ear Training begin with single pitches and the reference C. Move to Intermediate two-note intervals. Sing the second note before playing it. Use Advanced to require the written register as well as pitch class."],
       ["Construct triads", "On paper build major, minor, diminished and augmented triads from stacked thirds. Spell the root, third and fifth correctly. Identify root position, first inversion and second inversion from the bass note."],
-      ["Connect reading and sound", "Write a broken triad as a monophonic Composer phrase. Play it slowly and compare the heard contour with the staff. Simultaneous chord entry is outside this composer."],
+      ["Connect reading and sound", "Write a broken triad or short chord as a performance-based Composer phrase. Play the notes slowly and compare the heard contour with the staff. Near-simultaneous notes are captured as chords; inspect voicing and timing in the rendered score."],
       ["Checkpoint", "Use interval challenges without the reveal button. Revealed or assisted answers do not earn mastery evidence."]
     ]],
     ["Two-clef reading", [
