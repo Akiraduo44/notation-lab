@@ -375,6 +375,7 @@ function restore() {
   try {
     let s = JSON.parse(localStorage.getItem("notationLab") || "{}");
     if (s.metres) $("metres").value = s.metres;
+    syncMeterPreset();
     rhythmTaps = Array.isArray(s.rhythmTaps) ? s.rhythmTaps.filter(Number.isFinite) : [];
     readStats = s.readStats || readStats;
     earStats = s.earStats || earStats;
@@ -970,10 +971,16 @@ function metres() {
     return [{ n: 4, d: 4, groups: [1, 1, 1, 1], label: "4/4", beats: 4 }];
   }
 }
+function syncMeterPreset() {
+  let input = $("metres"), preset = $("meterPreset");
+  if (!input || !preset) return;
+  let value = input.value.trim();
+  preset.value = Array.from(preset.options).some((option) => option.value === value) ? value : "";
+}
 function setupAdvanced() {
   let box = document.createElement("div");
   box.className = "controls";
-  box.innerHTML = '<label>Metre sequence <input id="metres" type="text" value="4/4" size="28" aria-label="Metre sequence"></label><select id="meterPreset" aria-label="Metre presets"><option value="4/4">Common 4/4</option><option>2/2</option><option>3/4</option><option>6/8</option><option>9/8</option><option>12/8</option><option>5/4</option><option>7/8</option><option>2+2+3/8</option><option>3+2/8</option><option>4/4, 7/8, 6/8</option><option>5/16</option></select><span id="meterError" role="status"></span>';
+  box.innerHTML = '<label>Metre sequence <input id="metres" type="text" value="4/4" size="28" aria-label="Metre sequence"></label><select id="meterPreset" aria-label="Metre presets"><option value="4/4">Common 4/4</option><option value="">Custom sequence</option><option>2/2</option><option>3/4</option><option>6/8</option><option>9/8</option><option>12/8</option><option>5/4</option><option>7/8</option><option>2+2+3/8</option><option>3+2/8</option><option>4/4, 7/8, 6/8</option><option>5/16</option></select><span id="meterError" role="status"></span>';
   $("rhythmScore").before(box);
   $("meterPreset").onchange = () => {
     $("metres").value = $("meterPreset").value;
@@ -1039,11 +1046,13 @@ function changeMetre() {
   try {
     parseMetres($("metres").value);
     $("meterError").textContent = "";
+    syncMeterPreset();
     if (rhythmTimer) startRhythm();
     renderRhythm();
     renderComposition();
     store();
   } catch (e) {
+    syncMeterPreset();
     $("meterError").textContent = e.message;
   }
 }

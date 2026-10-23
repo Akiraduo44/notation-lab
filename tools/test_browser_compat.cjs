@@ -25,6 +25,8 @@ requireText(app, /window\.AudioContext \|\| window\.webkitAudioContext/, 'Web Au
 requireText(app, /if\s*\(!a\s*\|\|\s*!a\.createOscillator\s*\|\|\s*!a\.createGain\)\s*return/, 'silent audio fallback');
 requireText(app, /navigator\.requestMIDIAccess/, 'MIDI feature detection');
 requireText(app, /function requestMidi\(manual\)/, 'automatic MIDI access request');
+requireText(app, /function syncMeterPreset\(\)/, 'saved metre preset synchronization');
+requireText(app, /Custom sequence/, 'custom metre selector state');
 requireText(app, /access\.onstatechange = attachMidi/, 'MIDI hot-plug listener');
 requireText(app, /function midiInputLabel\(input\)/, 'MIDI device naming');
 requireText(app, /requestMidi\(false\);\s*window\.addEventListener\("focus"/, 'MIDI auto-connect and focus retry');
@@ -53,7 +55,7 @@ requireText(engraving, /drawMeterAwareBeams/, 'meter-aware Composer beam rendere
 requireText(engraving, /marginRight = "18px"/, 'separated Composer bar systems');
 if (index.includes('notation-lab-music.halecrab10.chatgpt.site')) throw new Error('retired hostname remains in public metadata');
 requireText(index, /href="https:\/\/notationlab\.pages\.dev\//, 'canonical public URL');
-requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261022-interaction-audit-2" defer><\/script><script src="\/assets\/app\.js\?v=20261022-interaction-audit-2" defer><\/script><script src="\/assets\/engraving\.js\?v=20261022-interaction-audit-2" defer><\/script>/, 'versioned deferred app scripts');
-requireText(index, /<script src="\/assets\/ads\.js\?v=20261022-interaction-audit-2" defer><\/script>/, 'versioned advertising loader');
+requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261023-metres-sync-1" defer><\/script><script src="\/assets\/app\.js\?v=20261023-metres-sync-1" defer><\/script><script src="\/assets\/engraving\.js\?v=20261023-metres-sync-1" defer><\/script>/, 'versioned deferred app scripts');
+requireText(index, /<script src="\/assets\/ads\.js\?v=20261023-metres-sync-1" defer><\/script>/, 'versioned advertising loader');
 requireText(index, /id="top-layout-reservation"/, 'top ad reservation');
 console.log('PASS: ES2015 syntax floor, runtime fallbacks, touch/mouse input, audio/MIDI detection, public metadata and cacheable assets');

@@ -46,5 +46,5 @@ must(engraving, /actual-bad/, 'incorrect played-note styling');
 must(engraving, /window\.notationLabComparison/, 'comparison renderer export');
 must(app, /function ensureAdSlots\(\)/, 'reserved ad placements');
 must(index, /id="top-layout-reservation"/, 'top ad reservation');
-must(index, /assets\/engraving\.js\?v=20261022-interaction-audit-2/, 'versioned engraving asset');
+must(index, /assets\/engraving\.js\?v=20261023-metres-sync-1/, 'versioned engraving asset');
 console.log('PASS: input lifecycle, same-staff feedback, constrained sight range, deterministic hints, metronome-independent taps, performance engraving, Composer beams and ad reservation');
