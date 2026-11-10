@@ -4,6 +4,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const dist = path.join(root, 'dist');
 const app = fs.readFileSync(path.join(dist, 'assets', 'app.js'), 'utf8');
+const ads = fs.readFileSync(path.join(dist, 'assets', 'ads.js'), 'utf8');
 const vex = fs.readFileSync(path.join(dist, 'assets', 'vexflow-4.2.5.js'), 'utf8');
 const engraving = fs.readFileSync(path.join(dist, 'assets', 'engraving.js'), 'utf8');
 const index = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
@@ -57,5 +58,8 @@ if (index.includes('notation-lab-music.halecrab10.chatgpt.site')) throw new Erro
 requireText(index, /href="https:\/\/notationlab\.pages\.dev\//, 'canonical public URL');
 requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261023-metres-sync-1" defer><\/script><script src="\/assets\/app\.js\?v=20261023-metres-sync-1" defer><\/script><script src="\/assets\/engraving\.js\?v=20261023-metres-sync-1" defer><\/script>/, 'versioned deferred app scripts');
 requireText(index, /<script src="\/assets\/ads\.js\?v=20261023-metres-sync-1" defer><\/script>/, 'versioned advertising loader');
+requireText(index, /ca-pub-8148335548762723/, 'AdSense publisher metadata');
+requireText(ads, /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=/, 'AdSense site tag source');
+requireText(ads, /function ensureAdSenseTag\(\)/, 'AdSense tag guard');
 requireText(index, /id="top-layout-reservation"/, 'top ad reservation');
 console.log('PASS: ES2015 syntax floor, runtime fallbacks, touch/mouse input, audio/MIDI detection, public metadata and cacheable assets');
