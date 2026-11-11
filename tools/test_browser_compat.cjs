@@ -78,6 +78,10 @@ for (const name of ['general-poster', 'handout', 'noticeboard', 'business-card',
   const svgPath = path.join(dist, 'assets', 'qr', `${name}.svg`);
   if (!fs.existsSync(svgPath)) throw new Error(`missing QR artwork: ${name}`);
   const svg = fs.readFileSync(svgPath, 'utf8');
-  if (!svg.includes('data-notation-lab-logo="beamed-eighth-notes"')) throw new Error(`missing musical QR logo: ${name}`);
+  if (svg.includes('data-notation-lab-logo="beamed-eighth-notes"')) throw new Error(`primary QR artwork should remain plain: ${name}`);
+  const alternatePath = path.join(dist, 'assets', 'qr-with-notes', `${name}.svg`);
+  if (!fs.existsSync(alternatePath)) throw new Error(`missing alternate QR artwork: ${name}`);
+  const alternate = fs.readFileSync(alternatePath, 'utf8');
+  if (!alternate.includes('data-notation-lab-logo="beamed-eighth-notes"')) throw new Error(`missing musical QR logo: ${name}`);
 }
 console.log('PASS: ES2015 syntax floor, runtime fallbacks, touch/mouse input, audio/MIDI detection, public metadata and cacheable assets');
