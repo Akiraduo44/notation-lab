@@ -275,7 +275,7 @@ function installResponsiveStyles() {
   `;
   document.head.append(style);
 }
-const trainingTabs = ["read", "sight", "rhythm", "compose", "ear"];
+const trainingTabs = ["read", "sight", "rhythm", "compose", "ear", "roadmap"];
 let liveNotesByTab = /* @__PURE__ */ new Map();
 function ensureTrainingDisplays() {
   for (let tabName of trainingTabs) {
@@ -314,17 +314,26 @@ function ensureAdSlots() {
   }
   for (let tabName of trainingTabs) {
     let panel = $(tabName);
-    let aside = panel && panel.querySelector(".grid > aside");
-    if (!aside || aside.querySelector(".side-reservation")) continue;
-    let slot = document.createElement("aside");
-    slot.className = "layout-reservation side-reservation";
-    slot.setAttribute("aria-label", "Advertising space reserved");
-    slot.innerHTML = "<span>Advertising space reserved</span>";
+    let aside = panel && (panel.querySelector(".grid > aside") || panel.querySelector(".grid aside"));
+    if (!aside && panel && tabName === "roadmap") {
+      let checklist = panel.querySelector("#dailyChecklist");
+      aside = checklist && checklist.closest(".panel");
+    }
+    if (!aside) continue;
+    let slot = aside.querySelector(".side-reservation");
+    if (!slot) {
+      slot = document.createElement("aside");
+      slot.className = "layout-reservation side-reservation";
+      slot.setAttribute("aria-label", "Advertising space reserved");
+      slot.innerHTML = "<span>Advertising space reserved</span>";
+      aside.append(slot);
+    }
+    let label = slot.querySelector("span");
+    if (label) label.textContent = "Advertising space reserved";
     if (providerReady) {
       slot.setAttribute("data-ad-container", "true");
-      slot.insertAdjacentHTML("beforeend", '<ins class="adsbygoogle" data-ad-format="auto" data-full-width-responsive="true"></ins>');
+      if (!slot.querySelector("ins.adsbygoogle")) slot.insertAdjacentHTML("beforeend", '<ins class="adsbygoogle" data-ad-format="auto" data-full-width-responsive="true"></ins>');
     }
-    aside.append(slot);
   }
   if (typeof window.NotationLabAdsRefresh === "function") window.NotationLabAdsRefresh();
 }
@@ -2123,6 +2132,7 @@ installKeySignatureControls();
 restore();
 keyboard();
 buildCourse();
+ensureAdSlots();
 hintEnabled = scaffoldStage === "full";
 $("showHint").checked = hintEnabled;
 updateRead();
