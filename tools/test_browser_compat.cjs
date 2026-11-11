@@ -71,7 +71,9 @@ requireText(index, /id="top-layout-reservation"/, 'top ad reservation');
 requireText(app, /requestedTab = String\(\(window\.location\.search\.match/, 'QR deep-link tab selection');
 requireText(qr, /name="robots" content="noindex,nofollow"/, 'QR utility page indexing guard');
 if ((qr.match(/utm_content=/g) || []).length !== 6) throw new Error('QR page does not contain six unique tracked destinations');
-for (const name of ['note-trainer', 'sight-reading', 'rhythm-lab', 'composer', 'ear-training', 'eight-week-course']) {
+if (/\?tab=/.test(qr)) throw new Error('QR destinations must remain top-level rather than section-specific');
+requireText(qr, /every code opens the same top-level Notation Lab page/, 'top-level QR destination copy');
+for (const name of ['general-poster', 'handout', 'noticeboard', 'business-card', 'event-flyer', 'studio-board']) {
   if (!fs.existsSync(path.join(dist, 'assets', 'qr', `${name}.svg`))) throw new Error(`missing QR artwork: ${name}`);
 }
 console.log('PASS: ES2015 syntax floor, runtime fallbacks, touch/mouse input, audio/MIDI detection, public metadata and cacheable assets');
