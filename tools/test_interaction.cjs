@@ -52,5 +52,5 @@ must(app, /function dailyComplete\(task, day\)/, 'daily practice completion rule
 must(app, /d\.seconds >= dailyTargets\[task\] && d\.inputs >= 5 && d\.success >= 1/, 'input-based daily completion threshold');
 must(app, /box\.checked = dailyComplete\(t, daily\)/, 'automatic daily checkbox update');
 must(index, /id="top-layout-reservation"/, 'top ad reservation');
-must(index, /assets\/engraving\.js\?v=20261111-ad-layout-1/, 'versioned engraving asset');
+must(index, /assets\/engraving\.js\?v=20261111-consent-qr-1/, 'versioned engraving asset');
 console.log('PASS: input lifecycle, same-staff feedback, constrained sight range, deterministic hints, metronome-independent taps, performance engraving, Composer beams and ad reservation');
