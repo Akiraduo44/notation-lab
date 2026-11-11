@@ -25,6 +25,7 @@ requireText(app, /typeof window\.PointerEvent === "function"/, 'Pointer Events f
 requireText(app, /window\.AudioContext \|\| window\.webkitAudioContext/, 'Web Audio vendor fallback');
 requireText(app, /if\s*\(!a\s*\|\|\s*!a\.createOscillator\s*\|\|\s*!a\.createGain\)\s*return/, 'silent audio fallback');
 requireText(app, /navigator\.requestMIDIAccess/, 'MIDI feature detection');
+requireText(app, /Web MIDI available \\xB7 no device connected/, 'explicit no-device MIDI status');
 requireText(app, /function requestMidi\(manual\)/, 'automatic MIDI access request');
 requireText(app, /function syncMeterPreset\(\)/, 'saved metre preset synchronization');
 requireText(app, /Custom sequence/, 'custom metre selector state');
@@ -52,12 +53,16 @@ if (app.includes('document.querySelectorAll(".beat")')) throw new Error('rhythm 
 requireText(app, /function setupButtonFeedback\(\)/, 'button feedback handler');
 requireText(app, /navigator\.vibrate\(10\)/, 'mobile haptic feedback');
 requireText(app, /button\.addEventListener\("click", function\(event\)/, 'accessible keyboard click fallback');
+requireText(app, /function installResponsiveStyles\(\)/, 'responsive mobile layout styles');
+requireText(app, /window\.NotationLabAdsRefresh\(\)/, 'visible-tab ad refresh');
+requireText(app, /\.layout-reservation ins\.adsbygoogle[^`]+width: 100% !important/, 'contained responsive ad units');
+requireText(app, /\.layout-reservation \{ border: 0; background: transparent/, 'mobile reservation chrome removal');
 requireText(engraving, /drawMeterAwareBeams/, 'meter-aware Composer beam renderer');
 requireText(engraving, /marginRight = "18px"/, 'separated Composer bar systems');
 if (index.includes('notation-lab-music.halecrab10.chatgpt.site')) throw new Error('retired hostname remains in public metadata');
 requireText(index, /href="https:\/\/notationlab\.pages\.dev\//, 'canonical public URL');
-requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261023-metres-sync-1" defer><\/script><script src="\/assets\/app\.js\?v=20261023-metres-sync-1" defer><\/script><script src="\/assets\/engraving\.js\?v=20261023-metres-sync-1" defer><\/script>/, 'versioned deferred app scripts');
-requireText(index, /<script src="\/assets\/ads\.js\?v=20261023-metres-sync-1" defer><\/script>/, 'versioned advertising loader');
+requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261111-ad-layout-1" defer><\/script><script src="\/assets\/app\.js\?v=20261111-ad-layout-1" defer><\/script><script src="\/assets\/engraving\.js\?v=20261111-ad-layout-1" defer><\/script>/, 'versioned deferred app scripts');
+requireText(index, /<script src="\/assets\/ads\.js\?v=20261111-ad-layout-1" defer><\/script>/, 'versioned advertising loader');
 requireText(index, /ca-pub-8148335548762723/, 'AdSense publisher metadata');
 requireText(ads, /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=/, 'AdSense site tag source');
 requireText(ads, /function ensureAdSenseTag\(\)/, 'AdSense tag guard');
