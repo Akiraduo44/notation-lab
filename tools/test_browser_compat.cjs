@@ -70,7 +70,7 @@ requireText(ads, /function ensureAdSenseTag\(\)/, 'AdSense tag guard');
 requireText(index, /id="top-layout-reservation"/, 'top ad reservation');
 requireText(app, /requestedTab = String\(\(window\.location\.search\.match/, 'QR deep-link tab selection');
 requireText(qr, /name="robots" content="noindex,nofollow"/, 'QR utility page indexing guard');
-if ((qr.match(/utm_content=/g) || []).length !== 6) throw new Error('QR page does not contain six unique tracked destinations');
+if ((qr.match(/<article class="qr-card">/g) || []).length !== 6) throw new Error('QR page does not contain six code cards');
 if (/\?tab=/.test(qr)) throw new Error('QR destinations must remain top-level rather than section-specific');
 requireText(qr, /every code opens the same top-level Notation Lab page/, 'top-level QR destination copy');
 if ((qr.match(/class="qr-brand">Notation-Lab<\/div>/g) || []).length !== 6) throw new Error('QR cards must show six one-line Notation-Lab labels');
