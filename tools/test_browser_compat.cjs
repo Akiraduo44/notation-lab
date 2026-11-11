@@ -62,8 +62,8 @@ requireText(engraving, /drawMeterAwareBeams/, 'meter-aware Composer beam rendere
 requireText(engraving, /marginRight = "18px"/, 'separated Composer bar systems');
 if (index.includes('notation-lab-music.halecrab10.chatgpt.site')) throw new Error('retired hostname remains in public metadata');
 requireText(index, /href="https:\/\/notationlab\.pages\.dev\//, 'canonical public URL');
-requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261111-rail5" defer><\/script><script src="\/assets\/app\.js\?v=20261111-rail5" defer><\/script><script src="\/assets\/engraving\.js\?v=20261111-rail5" defer><\/script>/, 'versioned deferred app scripts');
-requireText(index, /<script src="\/assets\/ads\.js\?v=20261111-rail5" defer><\/script>/, 'versioned advertising loader');
+requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261111-rail6" defer><\/script><script src="\/assets\/app\.js\?v=20261111-rail6" defer><\/script><script src="\/assets\/engraving\.js\?v=20261111-rail6" defer><\/script>/, 'versioned deferred app scripts');
+requireText(index, /<script src="\/assets\/ads\.js\?v=20261111-rail6" defer><\/script>/, 'versioned advertising loader');
 requireText(index, /ca-pub-8148335548762723/, 'AdSense publisher metadata');
 requireText(ads, /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=/, 'AdSense site tag source');
 requireText(ads, /function ensureAdSenseTag\(\)/, 'AdSense tag guard');

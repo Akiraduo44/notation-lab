@@ -5,6 +5,6 @@
 /assets/*
   Cache-Control: public, max-age=3600
 /index.html
-  Cache-Control: no-cache
+  Cache-Control: no-store
 /ads-config.js
-  Cache-Control: no-cache
+  Cache-Control: no-store

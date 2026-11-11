@@ -233,7 +233,7 @@ function installResponsiveStyles() {
   let style = document.createElement("style");
   style.id = "notationLabResponsiveStyles";
   style.textContent = `
-    .layout-reservation { width: 100%; max-width: 100%; overflow: hidden; contain: layout paint; }
+    .layout-reservation { width: 100%; max-width: 100%; overflow: visible; contain: none; }
     .layout-reservation ins.adsbygoogle,
     .layout-reservation ins.adsbygoogle iframe { display: block !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box; }
     @media (max-width: 850px) {
@@ -277,6 +277,29 @@ function installResponsiveStyles() {
 }
 const trainingTabs = ["read", "sight", "rhythm", "compose", "ear", "roadmap"];
 let liveNotesByTab = /* @__PURE__ */ new Map();
+let adRailRefreshTimers = [];
+function refreshVisibleAdRail() {
+  if (typeof window.NotationLabAdsRefresh !== "function") return;
+  window.NotationLabAdsRefresh();
+  adRailRefreshTimers.forEach((timer) => clearTimeout(timer));
+  adRailRefreshTimers = [];
+  let refresh = () => {
+    if (document.visibilityState !== "hidden") window.NotationLabAdsRefresh();
+  };
+  if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(refresh);
+  adRailRefreshTimers.push(setTimeout(refresh, 250));
+  adRailRefreshTimers.push(setTimeout(refresh, 1200));
+}
+function rememberSelectedTab(name) {
+  if (!window.history || typeof window.history.replaceState !== "function" || !window.location) return;
+  let query = (window.location.search || "").replace(/^\?/, "").split("&").filter((part) => part && !/^tab=/.test(part));
+  if (name !== "read") query.push("tab=" + encodeURIComponent(name));
+  let next = window.location.pathname + (query.length ? "?" + query.join("&") : "") + (window.location.hash || "");
+  try {
+    window.history.replaceState({ tab: name }, "", next);
+  } catch (error) {
+  }
+}
 function ensureTrainingDisplays() {
   for (let tabName of trainingTabs) {
     let score = $(tabName + "Score");
@@ -342,7 +365,7 @@ function ensureAdSlots() {
       if (!slot.querySelector("ins.adsbygoogle")) slot.insertAdjacentHTML("beforeend", '<ins class="adsbygoogle" data-ad-format="auto" data-full-width-responsive="true"></ins>');
     }
   }
-  if (typeof window.NotationLabAdsRefresh === "function") window.NotationLabAdsRefresh();
+  refreshVisibleAdRail();
 }
 function installAccessibilityEnhancements() {
   document.querySelectorAll("#tabs button[data-tab]").forEach((button) => {
@@ -1081,13 +1104,14 @@ function tab(name) {
   }
   if (currentTab !== name) flushPracticeProgress();
   currentTab = name;
+  rememberSelectedTab(name);
   document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("hidden", x.id !== name));
   document.querySelectorAll("#tabs button").forEach((x) => {
     let active = x.dataset.tab === name;
     x.classList.toggle("active", active);
     x.setAttribute("aria-selected", active ? "true" : "false");
   });
-  if (typeof window.NotationLabAdsRefresh === "function") window.NotationLabAdsRefresh();
+  refreshVisibleAdRail();
   renderTrainingPlayed(name, liveNotesByTab.get(name));
   const titles = { read: ["Learn notation by playing it.", "Read a note on the staff, then play it on your MIDI keyboard. Build speed and accuracy."], sight: ["Sight-read actual melodies.", "Follow the highlighted note through an unfamiliar phrase, without needing to memorise it first."], rhythm: ["Train your internal clock.", "Learn written rhythms by tapping against a metronome and measuring timing accuracy."], compose: ["Write music by performing it.", "Enter notes with your MIDI keyboard, play your composition and export it to Logic Pro."], ear: ["Connect sound to notation.", "Hear a note or interval, reproduce it and strengthen your musical ear."], roadmap: ["Your eight-week learning path.", "Follow a structured course with 30 minutes of deliberate practice per day."] };
   $("heroTitle").textContent = titles[name][0];

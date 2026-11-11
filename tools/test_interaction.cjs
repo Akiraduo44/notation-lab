@@ -56,5 +56,5 @@ must(app, /box\.checked = dailyComplete\(t, daily\)/, 'automatic daily checkbox 
 must(index, /id="top-layout-reservation"/, 'top ad reservation');
 must(index, /id="roadmap"[\s\S]*side-reservation/, 'course right-rail ad reservation');
 must(index, /id="roadmap"[\s\S]*<h2>Daily practice • 30 minutes<\/h2><div class="layout-reservation side-reservation"/, 'course rail starts beside course content');
-must(index, /assets\/engraving\.js\?v=20261111-rail5/, 'versioned engraving asset');
+must(index, /assets\/engraving\.js\?v=20261111-rail6/, 'versioned engraving asset');
 console.log('PASS: input lifecycle, same-staff feedback, constrained sight range, deterministic hints, metronome-independent taps, performance engraving, Composer beams and ad reservation');
