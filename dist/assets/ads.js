@@ -20,6 +20,12 @@
   function boxes(){
     return Array.prototype.slice.call(document.querySelectorAll('[data-ad-container="true"]'));
   }
+  function visibleBox(box){
+    if(!box)return false;
+    if(typeof box.closest==='function'&&box.closest('[hidden],.hidden'))return false;
+    if(typeof box.getClientRects==='function'&&!box.getClientRects().length)return false;
+    return true;
+  }
   function consentAllows(tc){
     if(!tc)return false;
     if(tc.gdprApplies===false)return true;
@@ -28,6 +34,7 @@
   }
   function populate(){
     boxes().forEach(box=>{
+      if(!visibleBox(box))return;
       let unit=box.querySelector('ins.adsbygoogle');
       if(!unit)return;
       unit.dataset.adClient=config.publisherId;
