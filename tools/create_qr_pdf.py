@@ -91,7 +91,7 @@ def draw_beamed_eighth_notes(c: canvas.Canvas, cx: float, cy: float) -> None:
     c.restoreState()
 
 
-def draw_qr(c: canvas.Canvas, value: str, x: float, y: float, size: float) -> None:
+def draw_qr(c: canvas.Canvas, value: str, x: float, y: float, size: float, include_logo: bool) -> None:
     """Draw a vector QR with a white quiet zone and high error correction."""
     c.saveState()
     quiet = 2.5 * mm
@@ -110,11 +110,12 @@ def draw_qr(c: canvas.Canvas, value: str, x: float, y: float, size: float) -> No
     drawing = Drawing(size, size)
     drawing.add(widget)
     renderPDF.draw(drawing, c, x, y)
-    draw_beamed_eighth_notes(c, x + size / 2, y + size / 2)
+    if include_logo:
+        draw_beamed_eighth_notes(c, x + size / 2, y + size / 2)
     c.restoreState()
 
 
-def draw_card(c: canvas.Canvas, row: int, col: int, slug: str) -> None:
+def draw_card(c: canvas.Canvas, row: int, col: int, slug: str, include_logo: bool) -> None:
     x, y = card_position(row, col)
     c.saveState()
     c.setFillColor(BABY_BLUE)
@@ -124,7 +125,7 @@ def draw_card(c: canvas.Canvas, row: int, col: int, slug: str) -> None:
 
     qr_x = x + (CARD_W - QR_SIZE) / 2
     qr_y = y + (CARD_H + 8 * mm - QR_SIZE) / 2
-    draw_qr(c, tracked_url(slug), qr_x, qr_y, QR_SIZE)
+    draw_qr(c, tracked_url(slug), qr_x, qr_y, QR_SIZE, include_logo)
 
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 15)
@@ -132,14 +133,14 @@ def draw_card(c: canvas.Canvas, row: int, col: int, slug: str) -> None:
     c.restoreState()
 
 
-def create_pdf(output: Path) -> None:
+def create_pdf(output: Path, include_logo: bool) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     c = canvas.Canvas(str(output), pagesize=A4, pageCompression=1)
     c.setTitle("Notation Lab QR code cards")
     c.setAuthor("Notation Lab")
     for index, slug in enumerate(PLACEMENT_SLUGS):
         row, col = divmod(index, COLS)
-        draw_card(c, row, col, slug)
+        draw_card(c, row, col, slug, include_logo)
     c.showPage()
     c.save()
 
@@ -147,8 +148,9 @@ def create_pdf(output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("output", nargs="?", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--with-logo", action="store_true", help="overlay the beamed-eighth-notes mark inside each QR")
     args = parser.parse_args()
-    create_pdf(args.output)
+    create_pdf(args.output, args.with_logo)
     print(args.output)
 
 
