@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import re
 
 
 OVERLAY = (
@@ -16,6 +17,7 @@ OVERLAY = (
     '<path d="M24.1 21.9L30.1 20.5V22.1L24.1 23.5Z" fill="#032d4d"/>'
     '</g>'
 )
+OVERLAY_RE = re.compile(r'<g data-notation-lab-logo="beamed-eighth-notes">.*?</g>')
 
 
 def add_logo(directory: Path) -> int:
@@ -31,11 +33,25 @@ def add_logo(directory: Path) -> int:
     return changed
 
 
+def remove_logo(directory: Path) -> int:
+    changed = 0
+    for path in sorted(directory.glob("*.svg")):
+        source = path.read_text(encoding="utf-8")
+        updated = OVERLAY_RE.sub("", source)
+        if updated == source:
+            continue
+        path.write_text(updated, encoding="utf-8")
+        changed += 1
+    return changed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("directories", nargs="+", type=Path)
+    parser.add_argument("--remove", action="store_true", help="remove the embedded musical logo")
     args = parser.parse_args()
-    total = sum(add_logo(directory) for directory in args.directories)
+    operation = remove_logo if args.remove else add_logo
+    total = sum(operation(directory) for directory in args.directories)
     print(f"updated {total} QR SVGs")
 
 
