@@ -20,24 +20,20 @@
     .notice{margin:18px 0;padding:13px 16px;border-left:4px solid #6b77ed;background:#f1f3ff;color:#3b4661;line-height:1.5}
     .notice strong{color:#1e2a4a}
     .qr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-    .qr-card{display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px;align-items:center;padding:16px;border:1px solid #008dcc;border-radius:15px;background:#00e5ff;box-shadow:0 0 0 2px rgba(0,229,255,.2),0 12px 28px rgba(0,110,255,.22);break-inside:avoid}
-    .qr-mark{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}.qr-card img{display:block;width:190px;height:190px;border:2px solid rgba(255,255,255,.92);border-radius:6px;background:#fff}.qr-brand{color:#fff;font-size:16px;font-weight:900;letter-spacing:.03em;line-height:1;white-space:nowrap;text-shadow:0 1px 2px rgba(0,45,77,.35)}
-    .qr-card h2{font-size:19px;margin:0 0 7px;color:#032d4d}.qr-card p{margin:0 0 10px;color:#073b5a;line-height:1.45;font-size:14px}
+    .qr-card{display:flex;justify-content:center;align-items:center;padding:22px;border:1px solid #4ea8d6;border-radius:15px;background:#7cc8eb;box-shadow:0 0 0 2px rgba(78,168,214,.18),0 10px 24px rgba(48,118,166,.16);break-inside:avoid;min-height:265px}
+    .qr-mark{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}.qr-card img{display:block;width:220px;height:220px;border:2px solid rgba(255,255,255,.94);border-radius:6px;background:#fff}.qr-brand{color:#fff;font-size:17px;font-weight:900;letter-spacing:.03em;line-height:1;white-space:nowrap;text-shadow:0 1px 2px rgba(0,45,77,.35)}
     code{display:block;overflow-wrap:anywhere;font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;color:#032d4d;background:rgba(255,255,255,.84);padding:8px;border-radius:7px}
     .label{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#003b6d;margin-bottom:9px}
     .footer{margin-top:22px;color:#64728b;font-size:12px;line-height:1.55}.footer a{color:#4658bb}
-    @media(max-width:760px){body{padding:12px}.sheet{padding:14px;border-radius:14px}.masthead{display:block;padding:18px}.masthead h1{font-size:25px}.meta{text-align:left;margin-top:12px}.qr-grid{grid-template-columns:1fr}.qr-card{grid-template-columns:140px minmax(0,1fr);gap:13px}.qr-mark{gap:6px}.qr-card img{width:140px;height:140px}.qr-brand{font-size:13px}.qr-card h2{font-size:17px}}
+    @media(max-width:760px){body{padding:12px}.sheet{padding:14px;border-radius:14px}.masthead{display:block;padding:18px}.masthead h1{font-size:25px}.meta{text-align:left;margin-top:12px}.qr-grid{grid-template-columns:1fr}.qr-card{min-height:0;padding:18px}.qr-mark{gap:8px}.qr-card img{width:210px;height:210px}.qr-brand{font-size:16px}}
     @media print{
       @page{size:A4;margin:9mm}
       body{padding:0;background:#fff}
       .sheet{max-width:none;margin:0;padding:0;border:0;box-shadow:none}
-      .masthead{border-radius:0;padding:12px 16px}
-      .masthead h1{font-size:23px}.masthead p{font-size:11px}.brand{font-size:18px}.meta{font-size:10px}
-      .notice{margin:8px 0;padding:7px 10px;font-size:10px}
-      .qr-grid{gap:8px}
-      .qr-card{grid-template-columns:135px minmax(0,1fr);gap:10px;padding:8px;border-radius:8px}
-      .qr-mark{gap:4px}.qr-card img{width:135px;height:135px}.qr-brand{font-size:10px}.qr-card h2{font-size:14px;margin-bottom:4px}.qr-card p{font-size:10px;margin-bottom:5px}.label{font-size:8px;margin-bottom:4px}code{font-size:8px;padding:4px}
-      .footer{margin-top:8px;font-size:8px}
+      .masthead,.notice,.footer{display:none}
+      .qr-grid{gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .qr-card{min-height:0;height:245px;padding:10px;border-radius:8px}
+      .qr-mark{gap:5px}.qr-card img{width:155px;height:155px}.qr-brand{font-size:11px}
     }
   </style>
 </head>
@@ -53,12 +49,12 @@
     </header>
     <div class="notice"><strong>Tracking status:</strong> every code opens the same top-level Notation Lab page so visitors can choose their own tab. Each code carries a unique <code style="display:inline;padding:2px 4px">utm_content</code> placement value. The site currently has no first-party analytics dashboard, so these labels are ready for Analytics or server-log reporting but do not by themselves create a traffic report. AdSense does not provide QR-scan attribution.</div>
     <section class="qr-grid" aria-label="Tracked QR codes">
-      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/general-poster.svg" alt="QR code for a general Notation Lab poster"><div class="qr-brand">Notation-Lab</div></div><div><div class="label">Placement 01</div><h2>General Poster</h2><p>Top-level app entry point for a poster or public display.</p><code>notationlab.pages.dev/?utm_content=general-poster</code></div></article>
-      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/handout.svg" alt="QR code for a Notation Lab handout"><div class="qr-brand">Notation-Lab</div></div><div><div class="label">Placement 02</div><h2>Handout</h2><p>Top-level app entry point for a take-home sheet or leaflet.</p><code>notationlab.pages.dev/?utm_content=handout</code></div></article>
-      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/noticeboard.svg" alt="QR code for a Notation Lab noticeboard"><div class="qr-brand">Notation-Lab</div></div><div><div class="label">Placement 03</div><h2>Noticeboard</h2><p>Top-level app entry point for a school, studio or community board.</p><code>notationlab.pages.dev/?utm_content=noticeboard</code></div></article>
-      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/business-card.svg" alt="QR code for a Notation Lab business card"><div class="qr-brand">Notation-Lab</div></div><div><div class="label">Placement 04</div><h2>Business Card</h2><p>Top-level app entry point for a small card or contact handoff.</p><code>notationlab.pages.dev/?utm_content=business-card</code></div></article>
-      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/event-flyer.svg" alt="QR code for a Notation Lab event flyer"><div class="qr-brand">Notation-Lab</div></div><div><div class="label">Placement 05</div><h2>Event Flyer</h2><p>Top-level app entry point for an event, workshop or performance flyer.</p><code>notationlab.pages.dev/?utm_content=event-flyer</code></div></article>
-      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/studio-board.svg" alt="QR code for a Notation Lab studio board"><div class="qr-brand">Notation-Lab</div></div><div><div class="label">Placement 06</div><h2>Studio Board</h2><p>Top-level app entry point for a permanent music-room display.</p><code>notationlab.pages.dev/?utm_content=studio-board</code></div></article>
+      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/general-poster.svg" alt="Notation Lab QR code"><div class="qr-brand">Notation-Lab</div></div></article>
+      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/handout.svg" alt="Notation Lab QR code"><div class="qr-brand">Notation-Lab</div></div></article>
+      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/noticeboard.svg" alt="Notation Lab QR code"><div class="qr-brand">Notation-Lab</div></div></article>
+      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/business-card.svg" alt="Notation Lab QR code"><div class="qr-brand">Notation-Lab</div></div></article>
+      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/event-flyer.svg" alt="Notation Lab QR code"><div class="qr-brand">Notation-Lab</div></div></article>
+      <article class="qr-card"><div class="qr-mark"><img src="/assets/qr/studio-board.svg" alt="Notation Lab QR code"><div class="qr-brand">Notation-Lab</div></div></article>
     </section>
     <p class="footer">Canonical destination: <a href="https://notationlab.pages.dev/">https://notationlab.pages.dev/</a> · Keep one code per placement so the <code style="display:inline;padding:2px 4px">utm_content</code> value identifies which printed item generated the visit. Do not edit the QR artwork after printing.</p>
   </main>
