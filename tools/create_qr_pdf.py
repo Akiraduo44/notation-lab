@@ -57,6 +57,40 @@ def card_position(row: int, col: int) -> tuple[float, float]:
     return x, y
 
 
+def draw_beamed_eighth_notes(c: canvas.Canvas, cx: float, cy: float) -> None:
+    """Draw a small beamed-eighth-notes logo over the QR centre."""
+    logo = 12 * mm
+    x = cx - logo / 2
+    y = cy - logo / 2
+    c.saveState()
+    c.setFillColor(colors.white)
+    c.setStrokeColor(BABY_BLUE)
+    c.setLineWidth(0.7)
+    c.roundRect(x, y, logo, logo, 1.4 * mm, fill=1, stroke=1)
+    scale = logo / 20
+    c.setFillColor(HexColor("#032d4d"))
+    c.ellipse(x + 2.2 * scale, y + 2.2 * scale, x + 6.6 * scale, y + 5 * scale, fill=1, stroke=0)
+    c.ellipse(x + 8.2 * scale, y + 2.2 * scale, x + 12.6 * scale, y + 5 * scale, fill=1, stroke=0)
+    c.setStrokeColor(HexColor("#032d4d"))
+    c.setLineWidth(1.35 * scale)
+    c.setLineCap(1)
+    c.line(x + 6.1 * scale, y + 4.8 * scale, x + 6.1 * scale, y + 12.2 * scale)
+    c.line(x + 12.1 * scale, y + 4.8 * scale, x + 12.1 * scale, y + 13.7 * scale)
+    c.setFillColor(HexColor("#032d4d"))
+    c.setStrokeColor(HexColor("#032d4d"))
+    c.setLineWidth(0)
+    c.saveState()
+    p = c.beginPath()
+    p.moveTo(x + 6.1 * scale, y + 12.2 * scale)
+    p.lineTo(x + 12.1 * scale, y + 13.7 * scale)
+    p.lineTo(x + 12.1 * scale, y + 12.2 * scale)
+    p.lineTo(x + 6.1 * scale, y + 10.7 * scale)
+    p.close()
+    c.drawPath(p, fill=1, stroke=0)
+    c.restoreState()
+    c.restoreState()
+
+
 def draw_qr(c: canvas.Canvas, value: str, x: float, y: float, size: float) -> None:
     """Draw a vector QR with a white quiet zone and high error correction."""
     c.saveState()
@@ -76,6 +110,7 @@ def draw_qr(c: canvas.Canvas, value: str, x: float, y: float, size: float) -> No
     drawing = Drawing(size, size)
     drawing.add(widget)
     renderPDF.draw(drawing, c, x, y)
+    draw_beamed_eighth_notes(c, x + size / 2, y + size / 2)
     c.restoreState()
 
 
