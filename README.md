@@ -38,6 +38,12 @@ Verified activation inputs: owner-controlled AdSense account, real publisher and
 
 The reserved placements are a top banner and a right-side rail on each training panel. Provider markup is added only after a valid approved configuration and consent callback; hidden tabs wait until they become visible before requesting their unit. No click incentives, automatic refresh or ads over keyboard/input controls are implemented. The privacy page identifies Google advertising and its consent requirement.
 
+## Tracked QR print sheet
+
+`dist/qr/index.html` is a print-ready sheet of six static QR codes. Each destination uses a unique `utm_source=qr`, `utm_medium=offline`, `utm_campaign=notation_lab_print` and `utm_content` value, and the app accepts `?tab=read|sight|rhythm|compose|ear|roadmap` deep links. The public site currently has no first-party analytics dashboard, so the labels are prepared for Analytics or server-log reporting; they are not evidence that scan counts are being recorded yet. The sheet is served at `/qr/` with `noindex,nofollow`.
+
+Google's certified CMP controls consent messaging. The AdSense tag already deploys the published message automatically when Google's rules require it. The floating privacy control is Google's post-decision revocation entrypoint; do not replace it with a custom consent dialog or call the revocation API automatically. If a required first-visit message is not appearing, check AdSense Privacy & messaging and publish the European regulations message with the request-consent option enabled. The official preview uses `?fc=alwaysshow&fctype=gdpr`.
+
 ## SEO
 
 Descriptive titles and descriptions, canonical URLs, Open Graph metadata, SVG favicon/social artwork, WebSite/WebApplication/LearningResource JSON-LD, robots.txt, sitemap.xml, readable static learning guide, semantic headings and internal links. No fabricated ratings, hidden keyword stuffing, cloaking or ranking promises. Search Console verification needs the owner's provider verification value; no fabricated token is included.
