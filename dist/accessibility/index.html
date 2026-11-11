@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Accessibility | Notation Lab</title>
+  <meta name="description" content="Accessibility information for Notation Lab: keyboard navigation, screen-reader feedback, focus behaviour, contrast and alternatives to colour or MIDI input.">
+  <link rel="canonical" href="https://notationlab.pages.dev/accessibility/">
+  <link rel="stylesheet" href="/assets/public.css">
+  <link rel="icon" href="/assets/icon.svg">
+</head>
+<body>
+  <main class="article">
+    <nav><a href="/">Practice app</a><a href="/learn/">Learning guide</a><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
+    <h1>Accessibility</h1>
+    <p>Notation Lab is designed to keep the core learning loop usable without a physical MIDI controller, pointer-only input or colour recognition.</p>
+    <h2>Keyboard navigation</h2>
+    <ul>
+      <li>Use Tab and Shift-Tab to move through navigation, controls, course disclosures, virtual keys and export controls.</li>
+      <li>Use Enter or Space on buttons, summaries and virtual piano keys. The Z and X keys move the virtual keyboard down and up one octave when a text field or select is not focused.</li>
+      <li>Every practice mode has ordinary HTML buttons, selects, inputs or details elements rather than pointer-only controls.</li>
+    </ul>
+    <h2>Focus and screen readers</h2>
+    <ul>
+      <li>Switching practice tabs moves focus to the new page heading without unexpectedly scrolling the page.</li>
+      <li>Tab panels expose their relationship to their navigation buttons with <code>aria-controls</code>, <code>aria-selected</code> and <code>role="tabpanel"</code>.</li>
+      <li>Feedback, timing errors, practice status and played-note cards use polite live regions. Progress bars expose their current value.</li>
+      <li>Rendered score bars are labelled images with their bar number, metre and key signature. The visible Target/Played legend does not rely on colour alone.</li>
+    </ul>
+    <h2>Contrast, motion and colour</h2>
+    <p>Text and controls use the high-contrast dark theme with visible focus outlines. Correct and incorrect notation is accompanied by text feedback and labels. A reduced-motion media rule disables non-essential transitions and animations when the operating system requests it.</p>
+    <h2>Input alternatives</h2>
+    <p>Use the on-screen keyboard or computer keyboard when Web MIDI is unavailable. Rhythm Lab accepts the Tap button or Space as alternatives to MIDI tapping. Audio begins only after user interaction. Microphone access is not required.</p>
+    <h2>Known limits</h2>
+    <p>Third-party advertising frames and their consent controls are supplied by Google and may expose their own accessibility behaviour. Physical MIDI depends on browser support and permission. Engraved notation is visual; the bar labels and live text provide a structural alternative, but this app is not a full text-mode score reader.</p>
+    <h2>Testing</h2>
+    <p>The repository checks the tab semantics, live feedback hooks, focus handling, reduced-motion rule, score labels and accessible documentation. Test with your browser's keyboard and screen reader because assistive technology output varies by browser and operating system.</p>
+  </main>
+</body>
+</html>

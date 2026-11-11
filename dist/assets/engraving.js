@@ -109,7 +109,7 @@
     });
     flush();
   }
-  function notationLabEngrave(el, notes, clef = "treble", highlight = -1, sequence = [{ n: 4, d: 4, beats: 4, label: "4/4", groups: [1, 1, 1, 1] }]) {
+  function notationLabEngrave(el, notes, clef = "treble", highlight = -1, sequence = [{ n: 4, d: 4, beats: 4, label: "4/4", groups: [1, 1, 1, 1] }], keySignature = "C") {
     el.innerHTML = "";
     const V = Vex.Flow;
     const bars = splitNotationBars(notes, sequence);
@@ -143,7 +143,14 @@
       renderer.resize(width, height);
       const ctx = renderer.getContext();
       const stave = new V.Stave(10, top, width - 20);
-      stave.addClef(clef).addTimeSignature(bar.meter.label).setContext(ctx).draw();
+      stave.addClef(clef);
+      if (keySignature && keySignature !== "C" && typeof stave.addKeySignature === "function") {
+        try {
+          stave.addKeySignature(keySignature);
+        } catch (error) {
+        }
+      }
+      stave.addTimeSignature(bar.meter.label).setContext(ctx).draw();
       if (fragments.length) {
         const accidentalState = /* @__PURE__ */ new Map();
         const vfnotes = fragments.map((fragment) => {
@@ -206,17 +213,18 @@
           }
         });
       }
-      holder.setAttribute("aria-label", "Bar " + (barIndex + 1) + " " + bar.meter.label);
+      holder.setAttribute("role", "img");
+      holder.setAttribute("aria-label", "Bar " + (barIndex + 1) + " " + bar.meter.label + (keySignature && keySignature !== "C" ? " in " + keySignature + " major" : ""));
     }
   }
-  function notationLabComparison(el, target, payload, clef, highlight, hinted) {
+  function notationLabComparison(el, target, payload, clef, highlight, hinted, keySignature = "C") {
     const targetNotes = (target || []).map((item) => {
       const source = typeof item === "number" ? { midi: item, beats: 1 } : Object.assign({}, item);
       source.role = "target";
       return source;
     });
     if (!payload) {
-      notationLabEngrave(el, targetNotes, clef, highlight);
+      notationLabEngrave(el, targetNotes, clef, highlight, void 0, keySignature);
       return;
     }
     const actualMidi = Number(payload.n);
@@ -230,7 +238,7 @@
       role: activeTarget && (actualMidi === activeTarget.midi || (actualMidi - activeTarget.midi) % 12 === 0) ? "actual-good" : "actual-bad"
     };
     const notes = targetNotes.concat([actual]);
-    notationLabEngrave(el, notes, clef, highlight);
+    notationLabEngrave(el, notes, clef, highlight, void 0, keySignature);
     const legend = document.createElement("div");
     legend.className = "comparison-legend";
     legend.innerHTML = '<span class="comparison-target">Target</span><span class="comparison-played">Played</span>' + (hinted ? '<span class="comparison-hint">Hint labels on</span>' : "");

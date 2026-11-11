@@ -328,6 +328,33 @@ function ensureAdSlots() {
   }
   if (typeof window.NotationLabAdsRefresh === "function") window.NotationLabAdsRefresh();
 }
+function installAccessibilityEnhancements() {
+  document.querySelectorAll("#tabs button[data-tab]").forEach((button) => {
+    let tabName = button.getAttribute("data-tab");
+    button.id = "tab-" + tabName;
+    button.setAttribute("aria-controls", tabName);
+    button.setAttribute("aria-selected", button.classList.contains("active") ? "true" : "false");
+  });
+  document.querySelectorAll(".tab").forEach((panel) => {
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", "tab-" + panel.id);
+    panel.setAttribute("tabindex", "-1");
+  });
+  ["readFeedback", "sightFeedback", "rhythmFeedback", "composeFeedback", "writingFeedback", "earFeedback", "meterError", "learningStatus"].forEach((id) => {
+    let node = $(id);
+    if (node) node.setAttribute("aria-live", "polite");
+  });
+  let footer = document.querySelector(".footer");
+  if (footer && !footer.querySelector('a[href="/accessibility/"]')) {
+    let separator = document.createTextNode(" \xB7 ");
+    let link = document.createElement("a");
+    link.href = "/accessibility/";
+    link.textContent = "Accessibility";
+    footer.append(separator, link);
+  }
+  let title = $("heroTitle");
+  if (title) title.setAttribute("tabindex", "-1");
+}
 let playedRenderKeys = /* @__PURE__ */ new Map();
 function renderTrainingPlayed(tabName, payload) {
   let panel = $(tabName + "Played");
@@ -347,7 +374,7 @@ function renderTrainingPlayed(tabName, payload) {
   let renderKey = [payload.n, Math.round(payload.velocity), payload.source, payload.phase, payload.beats, payload.articulation].join("|");
   if (score && typeof engrave === "function" && (playedRenderKeys.get(tabName) !== renderKey || !score.firstElementChild)) {
     try {
-      engrave(score, [{ midi: payload.n, beats: Math.max(0.125, payload.beats), velocity: payload.velocity, articulation: payload.articulation }], "treble", -1);
+      engrave(score, [{ midi: payload.n, beats: Math.max(0.125, payload.beats), velocity: payload.velocity, articulation: payload.articulation }], "treble", -1, void 0, currentKeySignature(tabName));
       playedRenderKeys.set(tabName, renderKey);
     } catch (error) {
       score.textContent = midiName(payload.n);
@@ -376,7 +403,7 @@ function renderTrainingComparison(tabName, payload) {
     clef = "treble";
   }
   if (!target) return;
-  notationLabComparison(score, target, payload, clef, highlight, hintEnabled);
+  notationLabComparison(score, target, payload, clef, highlight, scaffoldStage === "full", currentKeySignature(tabName));
 }
 const $ = (id) => document.getElementById(id);
 const names = ["C", "C\u266F", "D", "D\u266F", "E", "F", "F\u266F", "G", "G\u266F", "A", "A\u266F", "B"];
@@ -386,9 +413,23 @@ const noteLetter = (n) => names[(n % 12 + 12) % 12][0];
 const pitchClass = (n) => (n % 12 + 12) % 12;
 const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 let audio, access, midiInputs = /* @__PURE__ */ new Map(), currentTab = "read", readTarget = null, readClef = "treble", readLocked = false, readStats = { correct: 0, attempts: 0, streak: 0 }, sightSeq = [], sightPos = 0, sightErrors = 0, sightRuns = 0, composition = [], earSeq = [], earPos = 0, earLocked = false, earStats = { correct: 0, attempts: 0, streak: 0 }, rhythmTimer = null, rhythmStart = 0, rhythmTaps = [], beatNum = 0, activeNotes = /* @__PURE__ */ new Set();
-let rhythmActive = false, rhythmMetronomeOn = false, sightRangeKey = "", hintEnabled = false, autoComposerClef = "treble";
+let rhythmActive = false, rhythmMetronomeOn = false, sightRangeKey = "", hintEnabled = false, scaffoldStage = "full", autoComposerClef = "treble", earPerformance = [];
 let composerActive = /* @__PURE__ */ new Map(), midiSustain = false, computerHeld = /* @__PURE__ */ new Map(), lastInputSource = "ready", composerLastEndAt = 0, composerChordGroup = null, composerPreviewKey = "";
 let keyboardNotesByMidi = /* @__PURE__ */ new Map(), beatNodes = [], rhythmRenderKey = "", compositionRenderKey = "";
+const keySignatureOptions = [["C", "C major \xB7 no accidentals"], ["G", "G major \xB7 1 sharp"], ["D", "D major \xB7 2 sharps"], ["A", "A major \xB7 3 sharps"], ["F", "F major \xB7 1 flat"], ["Bb", "B\u266D major \xB7 2 flats"], ["Eb", "E\u266D major \xB7 3 flats"]];
+let keySignatures = { read: "C", sight: "C", compose: "C", ear: "C" };
+const keyPitchClasses = { C: [0, 2, 4, 5, 7, 9, 11], G: [0, 2, 4, 6, 7, 9, 11], D: [1, 2, 4, 6, 7, 9, 11], A: [1, 2, 4, 6, 8, 9, 11], F: [0, 2, 4, 5, 7, 9, 10], Bb: [0, 2, 3, 5, 7, 9, 10], Eb: [0, 2, 3, 5, 7, 8, 10] };
+const keySignatureLabel = (value) => (keySignatureOptions.find((item) => item[0] === value) || keySignatureOptions[0])[1];
+function currentKeySignature(tabName = currentTab) {
+  let id = tabName === "read" ? "keySignature" : tabName === "sight" ? "sightKeySignature" : tabName === "compose" ? "composeKeySignature" : tabName === "ear" ? "earKeySignature" : "keySignature";
+  return $(id) ? $(id).value : keySignatures[tabName] || "C";
+}
+function noteFitsKey(n, key = "C") {
+  return (keyPitchClasses[key] || keyPitchClasses.C).includes(pitchClass(n));
+}
+function keySignatureForTask(task) {
+  return currentKeySignature(task);
+}
 const inputSubscribers = { NOTE_ON: [], NOTE_OFF: [], TAP: [], SUSTAIN: [] };
 function onCanonicalInput(type, handler) {
   if (!inputSubscribers[type] || typeof handler !== "function") return function() {
@@ -414,7 +455,7 @@ const weeks = [["The musical alphabet", "Staff, clefs, ledger lines and instant 
 const practice = ["5 min \xB7 Note recognition", "5 min \xB7 Rhythm reading", "10 min \xB7 Sight-reading", "5 min \xB7 Write a melody", "5 min \xB7 Ear training"];
 function store() {
   try {
-    localStorage.setItem("notationLab", JSON.stringify({ readStats, earStats, sightRuns, composition, sightErrors, metres: $("metres").value, rhythmTaps }));
+    localStorage.setItem("notationLab", JSON.stringify({ readStats, earStats, sightRuns, composition, sightErrors, metres: $("metres").value, rhythmTaps, keySignatures, scaffoldStage }));
   } catch (e) {
   }
 }
@@ -428,6 +469,17 @@ function restore() {
     earStats = s.earStats || earStats;
     sightRuns = s.sightRuns || 0;
     sightErrors = s.sightErrors || 0;
+    if (s.keySignatures && typeof s.keySignatures === "object") {
+      ["read", "sight", "compose", "ear"].forEach((task) => {
+        if (keySignatureOptions.some((item) => item[0] === s.keySignatures[task])) keySignatures[task] = s.keySignatures[task];
+      });
+    }
+    if (["full", "reduced", "independent"].includes(s.scaffoldStage)) scaffoldStage = s.scaffoldStage;
+    ["read", "sight", "compose", "ear"].forEach((task) => {
+      let id = task === "read" ? "keySignature" : task === "sight" ? "sightKeySignature" : task === "compose" ? "composeKeySignature" : "earKeySignature";
+      if ($(id)) $(id).value = keySignatures[task];
+    });
+    if ($("scaffoldStage")) $("scaffoldStage").value = scaffoldStage;
     composition = Array.isArray(s.composition) ? s.composition.filter((x) => {
       if (!x || ![0.125, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6].includes(x.beats)) return false;
       if (x.rest === true) return true;
@@ -734,21 +786,22 @@ function requestMidi(manual) {
 function connectMidi() {
   return requestMidi(true);
 }
-function randomNote(clef, level) {
+function randomNote(clef, level, key = "C") {
   let min = clef === "bass" ? 43 : 64, max = clef === "bass" ? 57 : 77;
   if (level !== "easy") {
     min -= 4;
     max += 4;
   }
-  let n = rand(min, max);
-  if (level !== "hard") while ([1, 3, 6, 8, 10].includes(pitchClass(n))) n = rand(min, max);
+  let n = rand(min, max), tries = 0;
+  if (level !== "hard") while ((!noteFitsKey(n, key) || [1, 3, 6, 8, 10].includes(pitchClass(n))) && tries++ < 200) n = rand(min, max);
+  else while (!noteFitsKey(n, key) && tries++ < 200) n = rand(min, max);
   return n;
 }
 function visibleKeyboardRange() {
   let start = octave * 12 + 12, end = Math.min(127, start + 16);
   return { start, end };
 }
-function randomSightNote(clef, level) {
+function randomSightNote(clef, level, key = "C") {
   let visible = visibleKeyboardRange(), baseMin = clef === "bass" ? 43 : 64, baseMax = clef === "bass" ? 57 : 77;
   if (level !== "easy") {
     baseMin -= 4;
@@ -762,24 +815,27 @@ function randomSightNote(clef, level) {
     max = visible.end;
   }
   let candidates = [];
-  for (let n = min; n <= max; n++) if (level === "hard" || ![1, 3, 6, 8, 10].includes(pitchClass(n))) candidates.push(n);
+  for (let n = min; n <= max; n++) if (noteFitsKey(n, key) && (level === "hard" || ![1, 3, 6, 8, 10].includes(pitchClass(n)))) candidates.push(n);
+  if (!candidates.length) {
+    for (let n = min; n <= max; n++) if (noteFitsKey(n, key)) candidates.push(n);
+  }
   if (!candidates.length) for (let n = min; n <= max; n++) candidates.push(n);
   return candidates[rand(0, candidates.length - 1)];
 }
 function renderRead() {
   if (readTarget === null) return;
-  $("readScore").innerHTML = staffSvg([readTarget], readClef, 0, { labels: hintEnabled });
+  $("readScore").innerHTML = staffSvg([readTarget], readClef, 0, { labels: scaffoldStage === "full", keySignature: currentKeySignature("read") });
   $("readFeedback").className = "answer";
   if (liveNotesByTab.has("read")) renderTrainingComparison("read", liveNotesByTab.get("read"));
 }
 function newRead() {
   readClef = $("clef").value === "mixed" ? Math.random() < 0.5 ? "bass" : "treble" : $("clef").value;
-  readTarget = randomNote(readClef, $("difficulty").value);
+  readTarget = randomNote(readClef, $("difficulty").value, currentKeySignature("read"));
   readLocked = false;
   liveNotesByTab.delete("read");
   renderTrainingPlayed("read", null);
   renderRead();
-  $("readFeedback").textContent = "Play the displayed note.";
+  $("readFeedback").textContent = "Play the displayed note. Key signature: " + keySignatureLabel(currentKeySignature("read")) + ".";
 }
 function checkRead(n) {
   if (readLocked) return;
@@ -789,11 +845,13 @@ function checkRead(n) {
     readStats.correct++;
     readStats.streak++;
     readLocked = true;
-    $("readFeedback").textContent = `Correct! ${midiName(readTarget)} \xB7 Press Next note`;
+    let octaveNote = n === readTarget ? "Exact octave." : "Pitch class correct; octave equivalent accepted.";
+    $("readFeedback").textContent = `Correct pitch. ${midiName(readTarget)} \xB7 ${octaveNote} Press Next note.`;
     $("readFeedback").className = "answer good";
   } else {
     readStats.streak = 0;
-    $("readFeedback").textContent = `Not quite: you played ${midiName(n)}. Try again.`;
+    let category = noteLetter(n) === noteLetter(readTarget) ? "Accidental/pitch error" : noteFitsKey(n, currentKeySignature("read")) === false ? "Key signature error" : "Pitch error";
+    $("readFeedback").textContent = `${category}: you played ${midiName(n)}; target is ${midiName(readTarget)}. Check the clef and written key before trying again.`;
     $("readFeedback").className = "answer bad";
   }
   updateRead();
@@ -809,15 +867,15 @@ function updateRead() {
 }
 function newSight() {
   let c = $("sightClef").value;
-  sightSeq = Array.from({ length: +$("sightLength").value }, () => randomSightNote(c, "easy"));
+  sightSeq = Array.from({ length: +$("sightLength").value }, () => randomSightNote(c, "easy", currentKeySignature("sight")));
   sightPos = 0;
   liveNotesByTab.delete("sight");
   renderTrainingPlayed("sight", null);
-  $("sightFeedback").textContent = "Play the highlighted note to start.";
+  $("sightFeedback").textContent = "Play the highlighted note to start. Key signature: " + keySignatureLabel(currentKeySignature("sight")) + ".";
   renderSight();
 }
 function renderSight() {
-  $("sightScore").innerHTML = staffSvg(sightSeq, $("sightClef").value, sightPos);
+  $("sightScore").innerHTML = staffSvg(sightSeq, $("sightClef").value, sightPos, { keySignature: currentKeySignature("sight") });
   $("sightDone").textContent = sightPos;
   $("sightErrors").textContent = sightErrors;
   $("sightRuns").textContent = sightRuns;
@@ -829,7 +887,7 @@ function checkSight(n) {
     sightPos++;
     if (sightPos === sightSeq.length) {
       sightRuns++;
-      $("sightFeedback").textContent = "Melody complete! Generate another.";
+      $("sightFeedback").textContent = "Bar/phrase complete. Melody secure; generate another unfamiliar example.";
       $("sightFeedback").className = "answer good";
     } else {
       $("sightFeedback").textContent = `Correct. Note ${sightPos + 1} of ${sightSeq.length}`;
@@ -837,7 +895,8 @@ function checkSight(n) {
     }
   } else {
     sightErrors++;
-    $("sightFeedback").textContent = "Different pitch. Try the highlighted note again.";
+    let target = sightSeq[sightPos], category = n % 12 === target % 12 ? "Octave error" : "Pitch error";
+    $("sightFeedback").textContent = `${category}: you played ${midiName(n)}; the highlighted note is ${midiName(target)}. Keep the ${$("sightClef").value} clef and ${keySignatureLabel(currentKeySignature("sight"))} key in view.`;
     $("sightFeedback").className = "answer bad";
   }
   renderSight();
@@ -929,14 +988,21 @@ function exportMidi() {
 }
 function newEar() {
   let root = rand(60, 71);
-  earSeq = $("earMode").value === "interval" ? [root, Math.min(83, root + rand(2, 9))] : [root];
+  let mode = $("earMode").value;
+  if (mode === "interval") earSeq = [root, Math.min(83, root + rand(2, 9))];
+  else if (mode === "melody") {
+    let steps = [rand(-3, 3), rand(-3, 3), rand(-3, 3)], melody = [root];
+    steps.forEach((step) => melody.push(Math.max(55, Math.min(79, melody[melody.length - 1] + (step || 1)))));
+    earSeq = melody;
+  } else earSeq = [root];
   earPos = 0;
   earLocked = false;
+  earPerformance = [];
   liveNotesByTab.delete("ear");
   renderTrainingPlayed("ear", null);
-  $("earFeedback").textContent = "Listen, then play the answer.";
+  $("earFeedback").textContent = mode === "melody" ? "Listen to the phrase, then notate it by playing each note in order." : "Listen, then play the answer.";
   $("earFeedback").className = "answer";
-  $("earScore").innerHTML = staffSvg([], "treble");
+  $("earScore").innerHTML = staffSvg([], "treble", -1, { keySignature: currentKeySignature("ear") });
   setTimeout(playEar, 100);
 }
 function playEar() {
@@ -946,27 +1012,40 @@ function playEar() {
 function checkEar(n) {
   if (earLocked) return;
   earStats.attempts++;
-  if (pitchClass(n) === pitchClass(earSeq[earPos])) {
+  let target = earSeq[earPos], exact = n === target, samePitch = pitchClass(n) === pitchClass(target);
+  earPerformance.push(n);
+  if (samePitch) {
     earPos++;
     if (earPos === earSeq.length) {
       earStats.correct++;
       earStats.streak++;
       earLocked = true;
-      $("earFeedback").textContent = "Correct! " + earSeq.map(midiName).join(" \u2192 ");
+      $("earFeedback").textContent = "Phrase complete. " + (exact ? "Pitch and octave secure." : "Pitch classes secure; review the written octave.");
       $("earFeedback").className = "answer good";
-      $("earScore").innerHTML = staffSvg(earSeq, "treble", -1, { labels: true });
+      $("earScore").innerHTML = staffSvg(earSeq, "treble", -1, { labels: scaffoldStage === "full", keySignature: currentKeySignature("ear") });
     } else {
-      $("earFeedback").textContent = "First note correct. Now play the second.";
+      $("earFeedback").textContent = `Correct pitch. Note ${earPos + 1} of ${earSeq.length}; continue the heard phrase.`;
       $("earFeedback").className = "answer good";
     }
   } else {
     earStats.streak = 0;
+    let failedAt = earPos + 1;
     earPos = 0;
-    $("earFeedback").textContent = "Not quite. Listen and try again.";
+    earPerformance = [];
+    $("earFeedback").textContent = `Pitch error at note ${failedAt}: you played ${midiName(n)}. The phrase has been reset; listen again and check the key signature.`;
     $("earFeedback").className = "answer bad";
   }
+  renderEarPerformance();
   updateEar();
   store();
+}
+function renderEarPerformance() {
+  let panel = $("earPlayed"), score = panel && panel.querySelector(".played-note-staff");
+  if (!score || !earPerformance.length || typeof engrave !== "function") return;
+  try {
+    engrave(score, earPerformance.map((midi) => ({ midi, beats: 1 })), "treble", -1, void 0, currentKeySignature("ear"));
+  } catch (error) {
+  }
 }
 function updateEar() {
   $("earCorrect").textContent = earStats.correct;
@@ -987,12 +1066,27 @@ function tab(name) {
   if (currentTab !== name) flushPracticeProgress();
   currentTab = name;
   document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("hidden", x.id !== name));
-  document.querySelectorAll("#tabs button").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
+  document.querySelectorAll("#tabs button").forEach((x) => {
+    let active = x.dataset.tab === name;
+    x.classList.toggle("active", active);
+    x.setAttribute("aria-selected", active ? "true" : "false");
+  });
   if (typeof window.NotationLabAdsRefresh === "function") window.NotationLabAdsRefresh();
   renderTrainingPlayed(name, liveNotesByTab.get(name));
   const titles = { read: ["Learn notation by playing it.", "Read a note on the staff, then play it on your MIDI keyboard. Build speed and accuracy."], sight: ["Sight-read actual melodies.", "Follow the highlighted note through an unfamiliar phrase, without needing to memorise it first."], rhythm: ["Train your internal clock.", "Learn written rhythms by tapping against a metronome and measuring timing accuracy."], compose: ["Write music by performing it.", "Enter notes with your MIDI keyboard, play your composition and export it to Logic Pro."], ear: ["Connect sound to notation.", "Hear a note or interval, reproduce it and strengthen your musical ear."], roadmap: ["Your eight-week learning path.", "Follow a structured course with 30 minutes of deliberate practice per day."] };
   $("heroTitle").textContent = titles[name][0];
   $("heroDesc").textContent = titles[name][1];
+  let heading = $("heroTitle");
+  if (heading) {
+    heading.setAttribute("tabindex", "-1");
+    setTimeout(() => {
+      try {
+        heading.focus({ preventScroll: true });
+      } catch (error) {
+        heading.focus();
+      }
+    }, 0);
+  }
   if (name !== "rhythm" && rhythmTimer) startRhythm();
 }
 let octave = 4, selectedNote = -1, meterIndex = 0, pulse = 0, expectedTaps = [], nextPulse = 0;
@@ -1025,6 +1119,77 @@ function syncMeterPreset() {
   let value = input.value.trim();
   preset.value = Array.from(preset.options).some((option) => option.value === value) ? value : "";
 }
+function installKeySignatureControls() {
+  if ($("earMode") && !$("earMode").querySelector('option[value="melody"]')) $("earMode").insertAdjacentHTML("beforeend", '<option value="melody">Melodic dictation \xB7 4 notes</option>');
+  const controls = [
+    ["read", "#read .controls", "keySignature", "Key signature"],
+    ["sight", "#sight .controls", "sightKeySignature", "Key signature"],
+    ["compose", "#compose .controls", "composeKeySignature", "Key signature"],
+    ["ear", "#ear .controls", "earKeySignature", "Written key"]
+  ];
+  controls.forEach(([task, selector, id, labelText]) => {
+    let host = document.querySelector(selector);
+    if (!host || $(id)) return;
+    let label = document.createElement("label");
+    label.textContent = labelText + " ";
+    let select = document.createElement("select");
+    select.id = id;
+    select.setAttribute("aria-label", labelText);
+    keySignatureOptions.forEach(([value, text]) => {
+      let option = document.createElement("option");
+      option.value = value;
+      option.textContent = text;
+      select.append(option);
+    });
+    select.value = keySignatures[task] || "C";
+    label.append(select);
+    host.prepend(label);
+    select.onchange = () => {
+      keySignatures[task] = select.value;
+      if (task === "read") newRead();
+      else if (task === "sight") newSight();
+      else if (task === "compose") renderComposition();
+      else if (task === "ear") newEar();
+      store();
+      updateLearningUI();
+    };
+  });
+  let readControls = document.querySelector("#read .controls");
+  if (readControls && !$("scaffoldStage")) {
+    let label = document.createElement("label");
+    label.textContent = "Scaffold stage ";
+    let select = document.createElement("select");
+    select.id = "scaffoldStage";
+    select.setAttribute("aria-label", "Scaffold stage");
+    select.innerHTML = '<option value="full">Full support \xB7 labels on</option><option value="reduced">Reduced support \xB7 no labels</option><option value="independent">Independent \xB7 no hints</option>';
+    select.value = scaffoldStage;
+    label.append(select);
+    readControls.append(label);
+    select.onchange = () => {
+      scaffoldStage = select.value;
+      hintEnabled = scaffoldStage === "full";
+      $("showHint").checked = hintEnabled;
+      $("readFeedback").textContent = scaffoldStage === "independent" ? "Independent stage: no labels or reveal assistance. " + keySignatureLabel(currentKeySignature("read")) + " key." : "Scaffold stage set to " + scaffoldStage + ".";
+      renderRead();
+      store();
+      updateLearningUI();
+    };
+  }
+}
+function exportTeacherReport() {
+  let lines = ["Notation Lab practice report", "Generated: " + (/* @__PURE__ */ new Date()).toISOString(), "", "Task mastery"];
+  learningTasks.forEach((task) => {
+    let e = taskEvidence(task);
+    lines.push(taskLabels[task] + ": " + masteryFor(e) + "% \xB7 " + e.success + "/" + e.attempts + " successful attempts");
+  });
+  lines.push("", "Skills map");
+  skillCatalog.forEach(([key, label]) => lines.push(label + ": " + masteryFor(skillEvidence(key)) + "% \xB7 " + skillStatus(masteryFor(skillEvidence(key)))));
+  let daily = todayEvidence();
+  lines.push("", "Today");
+  learningTasks.forEach((task) => lines.push(taskLabels[task] + ": " + Math.round(daily[task].seconds) + " seconds, " + daily[task].inputs + " inputs, " + daily[task].success + " successes"));
+  lines.push("", "Interpretation: mastery reflects this app's exercises and local performance evidence. It is not a formal qualification.");
+  download("notation-lab-teacher-report.txt", lines.join("\n"), "text/plain");
+}
 function setupAdvanced() {
   let box = document.createElement("div");
   box.className = "controls";
@@ -1044,7 +1209,7 @@ function setupAdvanced() {
   if (durationLabel && durationLabel.firstChild) durationLabel.firstChild.textContent = "Manual length override ";
   let edit = document.createElement("div");
   edit.className = "controls";
-  edit.innerHTML = '<label>Selected pitch (MIDI) <input id="editPitch" type="number" min="0" max="127" value="60"></label><button id="applyNote">Apply pitch and length</button><button id="deleteNote">Delete selected</button><button id="saveProgress">Export progress backup</button><label>Restore backup <input id="loadProgress" type="file" accept="application/json"></label><button id="aionProgress">Export Aion learning report</button><p id="integrationState" class="small">Your practice progress is saved in this browser.</p>';
+  edit.innerHTML = '<label>Selected pitch (MIDI) <input id="editPitch" type="number" min="0" max="127" value="60"></label><button id="applyNote">Apply pitch and length</button><button id="deleteNote">Delete selected</button><button id="saveProgress">Export progress backup</button><button id="exportTeacherReport">Export teacher report</button><label>Restore backup <input id="loadProgress" type="file" accept="application/json"></label><button id="aionProgress">Export Aion learning report</button><p id="integrationState" class="small">Your practice progress is saved in this browser.</p>';
   $("composeNotes").before(edit);
   $("applyNote").onclick = () => {
     let n = +$("editPitch").value;
@@ -1066,6 +1231,7 @@ function setupAdvanced() {
     store();
     download("notation-lab-progress.json", JSON.stringify({ version: 2, storage: Object.fromEntries(Object.keys(localStorage).filter((k) => k === "notationLab" || k === "notationLabLearning" || k.startsWith("notationPractice-")).map((k) => [k, localStorage.getItem(k)])) }, null, 2), "application/json");
   };
+  $("exportTeacherReport").onclick = exportTeacherReport;
   $("loadProgress").onchange = (e) => __async(null, null, function* () {
     var _a;
     try {
@@ -1156,7 +1322,7 @@ function staffSvg(notes, clef = "treble", highlight = -1, opts = {}) {
     let node = document.getElementById(id);
     if (node) {
       let el = node.parentElement;
-      engrave(el, notes, clef, highlight);
+      engrave(el, notes, clef, highlight, void 0, opts.keySignature || "C");
       if (opts.labels) {
         let label = document.createElement("p");
         label.style.color = "#263a60";
@@ -1167,7 +1333,7 @@ function staffSvg(notes, clef = "treble", highlight = -1, opts = {}) {
   });
   return '<div id="' + id + '"></div>';
 }
-function engrave(el, notes, clef = "treble", highlight = -1, sequence = [{ n: 4, d: 4, beats: 4, label: "4/4" }]) {
+function engrave(el, notes, clef = "treble", highlight = -1, sequence = [{ n: 4, d: 4, beats: 4, label: "4/4" }], keySignature = "C") {
   var _a, _b;
   el.innerHTML = "";
   let V = Vex.Flow, bars = splitBars(notes, sequence);
@@ -1187,7 +1353,14 @@ function engrave(el, notes, clef = "treble", highlight = -1, sequence = [{ n: 4,
     let renderer = new V.Renderer(holder, V.Renderer.Backends.SVG);
     renderer.resize(width, height);
     let ctx = renderer.getContext(), stave = new V.Stave(10, top, width - 20);
-    stave.addClef(clef).addTimeSignature(bar.meter.label).setContext(ctx).draw();
+    stave.addClef(clef);
+    if (keySignature && keySignature !== "C" && typeof stave.addKeySignature === "function") {
+      try {
+        stave.addKeySignature(keySignature);
+      } catch (error) {
+      }
+    }
+    stave.addTimeSignature(bar.meter.label).setContext(ctx).draw();
     let vfnotes = fragments.map((f) => {
       let name = names[pitchClass(f.midi)].replace("\u266F", "#").toLowerCase(), n = new V.StaveNote({ clef, keys: [name + "/" + (Math.floor(f.midi / 12) - 1)], duration: f.duration, auto_stem: true });
       if (name.includes("#")) n.addModifier(new V.Accidental("#"), 0);
@@ -1222,7 +1395,8 @@ function engrave(el, notes, clef = "treble", highlight = -1, sequence = [{ n: 4,
         }
       });
     }
-    holder.setAttribute("aria-label", "Bar " + (bi + 1) + " " + bar.meter.label);
+    holder.setAttribute("role", "img");
+    holder.setAttribute("aria-label", "Bar " + (bi + 1) + " " + bar.meter.label + (keySignature && keySignature !== "C" ? " in " + keySignature + " major" : ""));
   }
 }
 function selectNote(i) {
@@ -1241,7 +1415,7 @@ function renderComposition() {
   if (renderKey === compositionRenderKey) return;
   compositionRenderKey = renderKey;
   composerPreviewKey = "";
-  engrave($("composeScore"), composition, currentComposerClef(composition), selectedNote, sequence);
+  engrave($("composeScore"), composition, currentComposerClef(composition), selectedNote, sequence, currentKeySignature("compose"));
   $("composeCount").textContent = composition.filter((x) => !x.rest).length;
   let chips = document.createDocumentFragment();
   composition.forEach((x, i) => {
@@ -1265,20 +1439,20 @@ function renderCompositionPreview() {
   let score = $("composeScore");
   if (!score) return;
   let sequence = metres();
-  engrave(score, composition.concat(preview), currentComposerClef(composition.concat(preview)), selectedNote, sequence);
+  engrave(score, composition.concat(preview), currentComposerClef(composition.concat(preview)), selectedNote, sequence, currentKeySignature("compose"));
 }
 const oldNewRead = newRead, oldRenderSight = renderSight, oldCheckEar = checkEar;
 newRead = function() {
   oldNewRead();
-  engrave($("readScore"), [readTarget], readClef, 0);
+  engrave($("readScore"), [readTarget], readClef, 0, void 0, currentKeySignature("read"));
 };
 renderSight = function() {
   oldRenderSight();
-  engrave($("sightScore"), sightSeq, $("sightClef").value, sightPos);
+  engrave($("sightScore"), sightSeq, $("sightClef").value, sightPos, void 0, currentKeySignature("sight"));
 };
 checkEar = function(n) {
   oldCheckEar(n);
-  if (earLocked) engrave($("earScore"), earSeq);
+  if (earLocked) engrave($("earScore"), earSeq, "treble", -1, void 0, currentKeySignature("ear"));
 };
 function rhythmNotes(m = metres()[meterIndex % metres().length]) {
   let unit = 4 / m.d, p = $("rhythmPattern").value, out = [], used = 0;
@@ -1295,7 +1469,7 @@ function renderRhythm() {
   let renderKey = [$("rhythmPattern").value, seq.map((m2) => m2.label).join(",")].join("|");
   if (renderKey !== rhythmRenderKey) {
     rhythmRenderKey = renderKey;
-    engrave($("rhythmScore"), seq.flatMap((m2) => rhythmNotes(m2)), "treble", -1, seq);
+    engrave($("rhythmScore"), seq.flatMap((m2) => rhythmNotes(m2)), "treble", -1, seq, "C");
   }
   let m = seq[meterIndex % seq.length];
   let lights = $("beatLights");
@@ -1415,13 +1589,41 @@ function exportMidi() {
 const learningTasks = ["read", "sight", "rhythm", "compose", "ear"];
 const taskLabels = { read: "Note recognition", sight: "Sight-reading", rhythm: "Rhythm", compose: "Composition", ear: "Ear training" };
 const dailyTargets = { read: 300, sight: 600, rhythm: 300, compose: 300, ear: 300 };
-let learning = { version: 3, tasks: {}, days: {}, revision: 0 }, lastActivity = {}, lastClock = performance.now(), writingExercise = null, syncTimer = null, syncBusy = false, syncedRevision = -1, lastRhythmTarget = "", learningReady = false, learningDirty = false, lastLearningWrite = 0, lastLearningUi = 0;
+const skillCatalog = [["clef-treble", "Treble clef"], ["clef-bass", "Bass clef"], ["pitch", "Pitch and note names"], ["rhythm-simple", "Simple rhythm"], ["rhythm-compound", "Compound metre"], ["rhythm-odd", "Odd, additive and changing metre"], ["key-signature", "Key signatures"], ["intervals", "Intervals and ear"], ["symbols", "Rests, dots and articulation"], ["sight-reading", "Independent sight-reading"], ["performance", "Performance linkage"]];
+let learning = { version: 3, tasks: {}, skills: {}, days: {}, revision: 0 }, lastActivity = {}, lastClock = performance.now(), writingExercise = null, syncTimer = null, syncBusy = false, syncedRevision = -1, lastRhythmTarget = "", learningReady = false, learningDirty = false, lastLearningWrite = 0, lastLearningUi = 0;
 function dayKey() {
   let d = /* @__PURE__ */ new Date();
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
 }
 function blankEvidence() {
   return { attempts: 0, success: 0, tiers: [{ attempts: 0, success: 0 }, { attempts: 0, success: 0 }, { attempts: 0, success: 0 }], recent: [] };
+}
+function skillEvidence(skill) {
+  if (!learning.skills) learning.skills = {};
+  return learning.skills[skill] || (learning.skills[skill] = blankEvidence());
+}
+function activeSkillKeys(task) {
+  let keys = ["performance"];
+  if (task === "read") keys = ["pitch", "key-signature", "clef-" + ($("clef") ? $("clef").value === "mixed" ? readClef : $("clef").value : "treble")];
+  if (task === "sight") keys = ["pitch", "sight-reading", "key-signature", "clef-" + ($("sightClef") ? $("sightClef").value : "treble")];
+  if (task === "rhythm") {
+    let seq = metres(), compound = seq.some((m) => m.d >= 8 && m.n % 3 === 0), odd = seq.length > 1 || seq.some((m) => m.label.includes("+") || ![2, 3, 4].includes(m.n));
+    keys = [odd ? "rhythm-odd" : compound ? "rhythm-compound" : "rhythm-simple", "symbols"];
+  }
+  if (task === "compose") keys = ["performance", "symbols", "key-signature", "clef-" + currentComposerClef()];
+  if (task === "ear") keys = ["pitch", "intervals", "performance"];
+  return keys.filter((key, index, list) => skillCatalog.some((item) => item[0] === key) && list.indexOf(key) === index);
+}
+function recordSkillEvidence(task, ok, tier) {
+  activeSkillKeys(task).forEach((skill) => {
+    let e = skillEvidence(skill);
+    e.attempts++;
+    e.success += +ok;
+    e.tiers[tier].attempts++;
+    e.tiers[tier].success += +ok;
+    e.recent.push({ ok: +ok, tier });
+    e.recent = e.recent.slice(-240);
+  });
 }
 function taskEvidence(task) {
   return learning.tasks[task] || (learning.tasks[task] = blankEvidence());
@@ -1466,6 +1668,7 @@ function recordEvidence(task, ok, tier = 0, fromInput = true) {
   e.tiers[tier].success += +ok;
   e.recent.push({ ok: +ok, tier });
   e.recent = e.recent.slice(-240);
+  recordSkillEvidence(task, ok, tier);
   if (fromInput) recordActivity(task, ok);
   saveLearning();
 }
@@ -1493,12 +1696,16 @@ function flushPracticeProgress() {
 }
 function validateLearning(value) {
   if (!value || value.version !== 3 || !value.tasks || !value.days) throw Error("Invalid learning backup");
+  if (value.skills && typeof value.skills !== "object") throw Error("Invalid skill evidence");
   for (let t of learningTasks) {
     let e = value.tasks[t];
     if (!e) continue;
     if (!Number.isInteger(e.attempts) || e.attempts < 0 || !Number.isInteger(e.success) || e.success < 0 || e.success > e.attempts || !Array.isArray(e.tiers) || e.tiers.length !== 3 || !Array.isArray(e.recent) || e.recent.length > 240) throw Error("Invalid learning evidence");
     for (let p of e.tiers) if (!Number.isInteger(p.attempts) || p.attempts < 0 || !Number.isInteger(p.success) || p.success < 0 || p.success > p.attempts) throw Error("Invalid tier evidence");
     for (let r of e.recent) if (![0, 1].includes(r.ok) || ![0, 1, 2].includes(r.tier)) throw Error("Invalid recent evidence");
+  }
+  if (value.skills) for (let [skill, e] of Object.entries(value.skills)) {
+    if (!skillCatalog.some((item) => item[0] === skill) || !e || !Number.isInteger(e.attempts) || e.attempts < 0 || !Number.isInteger(e.success) || e.success < 0 || e.success > e.attempts || !Array.isArray(e.tiers) || e.tiers.length !== 3 || !Array.isArray(e.recent) || e.recent.length > 240) throw Error("Invalid skill evidence");
   }
   for (let [date, day] of Object.entries(value.days)) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw Error("Invalid practice date");
@@ -1604,6 +1811,33 @@ function updateLearningUI() {
   });
   let done = Array.from(document.querySelectorAll("#dailyChecklist input")).filter((x) => x.checked).length;
   $("dailyBar").style.width = done / 5 * 100 + "%";
+  updateSkillMap();
+  updateCoursePath();
+}
+function skillStatus(value) {
+  if (value >= 70) return "Secure";
+  if (value >= 35) return "Developing";
+  return "Review";
+}
+function updateSkillMap() {
+  let map = $("skillMap");
+  if (!map || !learningReady) return;
+  map.querySelectorAll("[data-skill-key]").forEach((card) => {
+    let key = card.getAttribute("data-skill-key"), value = masteryFor(skillEvidence(key));
+    card.querySelector(".skill-value").textContent = value + "%";
+    card.querySelector(".skill-fill").style.width = value + "%";
+    card.querySelector(".skill-status").textContent = skillStatus(value);
+    card.querySelector(".skill-status").className = "skill-status skill-" + skillStatus(value).toLowerCase();
+  });
+}
+function updateCoursePath() {
+  let path = $("coursePath");
+  if (!path || !learningReady) return;
+  path.querySelectorAll("[data-path-task]").forEach((card) => {
+    let value = masteryFor(taskEvidence(card.getAttribute("data-path-task"))), status = value >= 70 ? "Secure" : value >= 35 ? "Build" : "Start";
+    card.querySelector(".path-progress").style.width = value + "%";
+    card.querySelector(".path-status").textContent = status + " \xB7 " + value + "%";
+  });
 }
 function buildCourse() {
   const curriculum = [
@@ -1664,6 +1898,20 @@ function buildCourse() {
       ["Final checkpoint", "Master is the end of this app\u2019s measured exercise scale. Reaching it requires sustained success across all three difficulty tiers. It is not certification of professional sight-reading, ensemble skill or complete musicianship."]
     ]]
   ];
+  let pathSteps = [["Staff and clefs", "Read", "read"], ["Pitch direction and note names", "Read", "read"], ["Rhythm values, rests and metre", "Rhythm", "rhythm"], ["Key signatures and accidentals", "Read", "read"], ["Intervals and phrases", "Ear", "ear"], ["Independent sight-reading", "Sight", "sight"], ["Notate and perform", "Compose", "compose"]];
+  let path = document.createElement("section");
+  path.id = "coursePath";
+  path.className = "course-path";
+  path.setAttribute("aria-labelledby", "coursePathTitle");
+  path.innerHTML = '<div class="course-path-heading"><div><h3 id="coursePathTitle">Course path</h3><p>Move from recognition to independent reading. Each stage links to a practice mode and reports its own evidence.</p></div><span class="pill">Prerequisite order</span></div><ol class="course-path-list">' + pathSteps.map(([title, mode, task], i) => '<li class="course-path-card" data-path-task="' + task + '"><span class="path-number">' + (i + 1) + "</span><div><strong>" + title + "</strong><small>" + mode + ' mode</small><div class="progress path-progress-track"><div class="fill path-progress"></div></div><span class="path-status">Start \xB7 0%</span></div><button type="button" data-path-tab="' + task + '">Open</button></li>').join("") + "</ol>";
+  $("weekList").before(path);
+  path.querySelectorAll("[data-path-tab]").forEach((button) => button.onclick = () => tab(button.getAttribute("data-path-tab")));
+  let skillMap = document.createElement("section");
+  skillMap.id = "skillMap";
+  skillMap.className = "skill-map";
+  skillMap.setAttribute("aria-labelledby", "skillMapTitle");
+  skillMap.innerHTML = '<div class="course-path-heading"><div><h3 id="skillMapTitle">Skills map</h3><p>Evidence is grouped by clef, rhythm family, key, notation symbols, ear work and independent reading.</p></div><span class="pill">Background evidence</span></div><div class="skill-grid">' + skillCatalog.map(([key, label]) => '<article class="skill-card" data-skill-key="' + key + '"><strong>' + label + '</strong><span class="skill-value">0%</span><div class="progress"><div class="fill skill-fill"></div></div><span class="skill-status skill-review">Review</span></article>').join("") + "</div>";
+  $("dailyChecklist").before(skillMap);
   $("weekList").innerHTML = curriculum.map((week, i) => '<details class="course-week"><summary>Week ' + (i + 1) + " \xB7 " + week[0] + "</summary>" + week[1].map(([title, body], j) => '<details class="course-step"><summary>' + (j + 1) + ". " + title + "</summary><p>" + body + "</p></details>").join("") + "</details>").join("");
   $("dailyChecklist").innerHTML = "";
   practice.forEach((p) => {
@@ -1677,22 +1925,24 @@ function buildCourse() {
 }
 function startWritingExercise() {
   let tier = +$("writingLevel").value, clef = currentComposerClef(), beats = tier === 0 ? [1, 1, 2, 1, 1, 2] : tier === 1 ? [1.5, 0.5, 1, 1, 2, 1, 1] : [0.75, 0.25, 1, 0.5, 0.5, 1, 2, 1, 1];
-  writingExercise = { tier, pos: 0, notes: beats.map((b) => ({ midi: randomNote(clef, tier === 2 ? "hard" : tier === 1 ? "medium" : "easy"), beats: b })) };
+  writingExercise = { tier, pos: 0, notes: beats.map((b) => ({ midi: randomNote(clef, tier === 2 ? "hard" : tier === 1 ? "medium" : "easy", currentKeySignature("compose")), beats: b })) };
   $("writingScore").hidden = false;
-  engrave($("writingScore"), writingExercise.notes, clef, 0);
+  engrave($("writingScore"), writingExercise.notes, clef, 0, void 0, currentKeySignature("compose"));
   $("writingFeedback").textContent = "Copy the highlighted note with its written duration.";
 }
 function writingAttempt(n, beats) {
   if (!writingExercise || writingExercise.pos >= writingExercise.notes.length) {
     recordActivity("compose", true);
     saveLearning();
+    $("writingFeedback").textContent = "Bar/phrase complete. Start a new writing exercise to verify another phrase.";
     return;
   }
   let target = writingExercise.notes[writingExercise.pos], ok = n === target.midi && Math.abs(beats - target.beats) < 1e-5;
   recordEvidence("compose", ok, writingExercise.tier);
   if (ok) writingExercise.pos++;
-  $("writingFeedback").textContent = ok ? writingExercise.pos === writingExercise.notes.length ? "Phrase complete." : "Correct. Continue with the highlighted note." : "Check both the pitch and written duration.";
-  engrave($("writingScore"), writingExercise.notes, currentComposerClef(writingExercise.notes), writingExercise.pos);
+  let pitchOk = n === target.midi, durationOk = Math.abs(beats - target.beats) < 1e-5;
+  $("writingFeedback").textContent = ok ? writingExercise.pos === writingExercise.notes.length ? "Bar/phrase complete. Pitch and rhythm value secure." : "Correct pitch and rhythm value. Continue with the highlighted note." : !pitchOk && !durationOk ? `Pitch error and rhythm-value error: played ${midiName(n)} for ${beats} beats; target is ${midiName(target.midi)} for ${target.beats} beats.` : !pitchOk ? `Pitch error: played ${midiName(n)}; target is ${midiName(target.midi)}. Keep the clef and key signature in view.` : `Rhythm-value error: played ${beats} beats; target is ${target.beats} beats.`;
+  engrave($("writingScore"), writingExercise.notes, currentComposerClef(writingExercise.notes), writingExercise.pos, void 0, currentKeySignature("compose"));
 }
 const evidenceCheckRead = checkRead, evidenceCheckSight = checkSight, evidenceCheckEar = checkEar, evidenceAddComposition = addComposition, evidenceTapBeat = tapBeat;
 checkRead = function(n) {
@@ -1710,7 +1960,7 @@ checkSight = function(n) {
   window.sightAssisted = false;
   if (tier === 2 && !ok && pitchClass(n) === pitchClass(sightSeq[sightPos])) {
     sightErrors++;
-    $("sightFeedback").textContent = "Match the exact octave.";
+    $("sightFeedback").textContent = `Octave error: ${midiName(n)} has the right pitch class but the wrong register; target ${midiName(sightSeq[sightPos])}.`;
     renderSight();
     store();
     return;
@@ -1728,7 +1978,7 @@ checkEar = function(n) {
     earPos = 0;
     updateEar();
     store();
-    $("earFeedback").textContent = "Match the exact octave.";
+    $("earFeedback").textContent = `Octave error: ${midiName(n)} has the right pitch class but the wrong register. Try note ${earPos + 1} again.`;
     return;
   }
   evidenceCheckEar(n);
@@ -1758,20 +2008,20 @@ newSight = function() {
   window.sightAssisted = false;
   let tier = +(((_a = $("sightLevel")) == null ? void 0 : _a.value) || 0);
   if (tier) {
-    sightSeq = sightSeq.map(() => randomSightNote($("sightClef").value, tier === 2 ? "hard" : "medium"));
+    sightSeq = sightSeq.map(() => randomSightNote($("sightClef").value, tier === 2 ? "hard" : "medium", currentKeySignature("sight")));
     renderSight();
   }
 };
 const learningNewEar = newEar;
 newEar = function() {
-  if ($("earLevel")) $("earMode").value = +$("earLevel").value === 0 ? "single" : "interval";
+  if ($("earLevel") && $("earMode").value !== "melody") $("earMode").value = +$("earLevel").value === 0 ? "single" : "interval";
   learningNewEar();
 };
 function progressPayload() {
   return { schema: 1, revision: learning.revision, day: dayKey(), tasks: Object.fromEntries(learningTasks.map((t) => {
     let e = taskEvidence(t);
     return [t, { mastery: masteryFor(e), attempts: e.attempts, success: e.success, tiers: e.tiers, recent: e.recent }];
-  })), daily: todayEvidence() };
+  })), skills: Object.fromEntries(skillCatalog.map(([key]) => [key, { mastery: masteryFor(skillEvidence(key)), attempts: skillEvidence(key).attempts, success: skillEvidence(key).success }])), daily: todayEvidence() };
 }
 function queueProgressSync() {
   return;
@@ -1856,18 +2106,25 @@ tapBeat = function() {
   $("timingError").textContent = Math.round(rhythmTaps.reduce((s, x) => s + x, 0) / rhythmTaps.length) + " ms";
   emitCanonicalInput("TAP", { source: lastInputSource || "input", at: performance.now(), deviation, matched: deviation <= tolerance });
   store();
-  $("rhythmFeedback").textContent = deviation <= tolerance ? "On time." : "Listen to the pulse and adjust the next tap.";
+  if (deviation <= tolerance) $("rhythmFeedback").textContent = "Beat placement secure: on time.";
+  else {
+    let direction = t > rhythmTargetAt(index) ? "late" : "early";
+    $("rhythmFeedback").textContent = `Beat-placement error: ${Math.round(deviation)} ms ${direction}. Keep the written rhythm value and place the next onset on the pulse.`;
+  }
 };
 installInteractionStyles();
 installResponsiveStyles();
 setupButtonFeedback();
 ensureTrainingDisplays();
 ensureAdSlots();
+installAccessibilityEnhancements();
 setupAdvanced();
+installKeySignatureControls();
 restore();
 keyboard();
 buildCourse();
-hintEnabled = !!$("showHint").checked;
+hintEnabled = scaffoldStage === "full";
+$("showHint").checked = hintEnabled;
 updateRead();
 updateEar();
 newRead();
@@ -1894,7 +2151,10 @@ $("resetRead").onclick = () => {
 ["clef", "difficulty"].forEach((id) => $(id).addEventListener("change", newRead));
 $("showHint").addEventListener("change", () => {
   hintEnabled = !!$("showHint").checked;
+  scaffoldStage = hintEnabled ? "full" : "reduced";
+  if ($("scaffoldStage")) $("scaffoldStage").value = scaffoldStage;
   renderRead();
+  store();
 });
 $("newSight").onclick = newSight;
 $("sightClef").onchange = newSight;
@@ -1934,8 +2194,8 @@ $("playEar").onclick = playEar;
 $("earMode").onchange = newEar;
 $("revealEar").onclick = () => {
   earLocked = true;
-  $("earFeedback").textContent = "Answer: " + earSeq.map(midiName).join(" \u2192 ");
-  $("earScore").innerHTML = staffSvg(earSeq, "treble", -1, { labels: true });
+  $("earFeedback").textContent = "Answer revealed: " + earSeq.map(midiName).join(" \u2192 ") + ". Revealed answers do not earn mastery evidence.";
+  $("earScore").innerHTML = staffSvg(earSeq, "treble", -1, { labels: scaffoldStage === "full", keySignature: currentKeySignature("ear") });
 };
 $("startRhythm").onclick = startRhythm;
 $("tapRhythm").onclick = tapBeat;

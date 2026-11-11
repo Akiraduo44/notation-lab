@@ -17,11 +17,11 @@ must(app, /window\.NotationLabInput = \{ on: onCanonicalInput \}/, 'shared input
 must(app, /function renderTrainingComparison\(tabName, payload\)/, 'same-staff training comparison');
 must(app, /renderTrainingPlayed\(currentTab, payload\)/, 'live comparison render path');
 must(app, /function visibleKeyboardRange\(\)/, 'visible keyboard range helper');
-must(app, /function randomSightNote\(clef, level\)/, 'range-constrained sight note generator');
+must(app, /function randomSightNote\(clef, level[^)]*\)/, 'range-constrained sight note generator');
 must(app, /sightRangeKey = start \+ ":" \+ end/, 'octave range tracking');
 must(app, /Remaining notes now fit the visible keys/, 'range-change regeneration feedback');
 must(app, /hintEnabled = false/, 'canonical hint state');
-must(app, /hintEnabled = !!\$\("showHint"\)\.checked;\s*renderRead\(\);/, 'deterministic hint toggle');
+must(app, /hintEnabled = !!\$\("showHint"\)\.checked;\s*scaffoldStage = hintEnabled \? "full" : "reduced";[\s\S]*?renderRead\(\);/, 'deterministic hint toggle');
 const noteOff = app.slice(app.indexOf('function noteOff('), app.indexOf('function noteOn('));
 must(noteOff, /renderLiveInput\(n, velocity, source, "released"/, 'release rendering for every input source');
 const finalTap = app.slice(app.lastIndexOf('tapBeat = function()'));

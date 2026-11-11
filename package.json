@@ -5,10 +5,11 @@
   "description": "A free browser-based music notation practice app.",
   "type": "commonjs",
   "scripts": {
-    "test": "npm run test:interaction && npm run test:browser && npm run test:ads",
+    "test": "npm run test:interaction && npm run test:browser && npm run test:ads && npm run test:accessibility",
     "test:interaction": "node tools/test_interaction.cjs",
     "test:browser": "node tools/test_browser_compat.cjs",
     "test:ads": "node tools/test_ads.cjs",
+    "test:accessibility": "node tools/test_accessibility.cjs",
     "build:compat": "bash tools/build_compat.sh"
   },
   "engines": {
