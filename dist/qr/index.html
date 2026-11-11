@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Notation Lab tracked QR print sheet</title>
+  <meta name="description" content="Printable tracked QR codes for the free Notation Lab music-reading practice app.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="canonical" href="https://notationlab.pages.dev/qr/">
+  <link rel="icon" href="/assets/icon.svg">
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:#18243b;background:#eef2f8}
+    *{box-sizing:border-box}
+    body{margin:0;padding:28px}
+    .sheet{max-width:1060px;margin:0 auto;background:#fff;padding:28px;border:1px solid #d6deed;border-radius:20px;box-shadow:0 18px 50px rgba(27,45,79,.12)}
+    .masthead{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;padding:24px;border-radius:16px;background:linear-gradient(115deg,#263260,#141e36);color:#f4f7ff}
+    .brand{font-size:25px;font-weight:800;letter-spacing:-.7px}.brand span{color:#a2adff}
+    h1{font-size:30px;line-height:1.1;margin:20px 0 8px}.masthead h1{margin:0 0 8px;font-size:30px}.masthead p{max-width:650px;color:#c5cee4;line-height:1.55;margin:0}
+    .meta{font-size:12px;color:#c5cee4;text-align:right;white-space:nowrap}.meta b{display:block;color:#fff;font-size:15px;margin-bottom:4px}
+    .notice{margin:18px 0;padding:13px 16px;border-left:4px solid #6b77ed;background:#f1f3ff;color:#3b4661;line-height:1.5}
+    .notice strong{color:#1e2a4a}
+    .qr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .qr-card{display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px;align-items:center;padding:16px;border:1px solid #d7dfed;border-radius:15px;background:#fbfcff;break-inside:avoid}
+    .qr-card img{display:block;width:190px;height:190px;border-radius:6px;background:#fff}
+    .qr-card h2{font-size:19px;margin:0 0 7px;color:#1c2a49}.qr-card p{margin:0 0 10px;color:#5b6881;line-height:1.45;font-size:14px}
+    code{display:block;overflow-wrap:anywhere;font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;color:#35445f;background:#edf1f8;padding:8px;border-radius:7px}
+    .label{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5a68d9;margin-bottom:9px}
+    .footer{margin-top:22px;color:#64728b;font-size:12px;line-height:1.55}.footer a{color:#4658bb}
+    @media(max-width:760px){body{padding:12px}.sheet{padding:14px;border-radius:14px}.masthead{display:block;padding:18px}.masthead h1{font-size:25px}.meta{text-align:left;margin-top:12px}.qr-grid{grid-template-columns:1fr}.qr-card{grid-template-columns:140px minmax(0,1fr);gap:13px}.qr-card img{width:140px;height:140px}.qr-card h2{font-size:17px}}
+    @media print{
+      @page{size:A4;margin:9mm}
+      body{padding:0;background:#fff}
+      .sheet{max-width:none;margin:0;padding:0;border:0;box-shadow:none}
+      .masthead{border-radius:0;padding:12px 16px}
+      .masthead h1{font-size:23px}.masthead p{font-size:11px}.brand{font-size:18px}.meta{font-size:10px}
+      .notice{margin:8px 0;padding:7px 10px;font-size:10px}
+      .qr-grid{gap:8px}
+      .qr-card{grid-template-columns:135px minmax(0,1fr);gap:10px;padding:8px;border-radius:8px}
+      .qr-card img{width:135px;height:135px}.qr-card h2{font-size:14px;margin-bottom:4px}.qr-card p{font-size:10px;margin-bottom:5px}.label{font-size:8px;margin-bottom:4px}code{font-size:8px;padding:4px}
+      .footer{margin-top:8px;font-size:8px}
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <div>
+        <div class="brand">◈ Notation <span>Lab</span></div>
+        <h1>Tracked QR print sheet</h1>
+        <p>Print these codes for posters, handouts, noticeboards and cards. Each code opens a different practice area and carries a unique offline campaign label.</p>
+      </div>
+      <div class="meta"><b>notationlab.pages.dev</b>Free sheet-music practice<br>Print at 100% scale</div>
+    </header>
+    <div class="notice"><strong>Tracking status:</strong> the links use UTM parameters and a unique <code style="display:inline;padding:2px 4px">utm_content</code> value for each placement. The site currently has no first-party analytics dashboard, so these labels are ready for Analytics or server-log reporting but do not by themselves create a traffic report. AdSense does not provide QR-scan attribution.</div>
+    <section class="qr-grid" aria-label="Tracked QR codes">
+      <article class="qr-card"><img src="/assets/qr/note-trainer.svg" alt="QR code for Note Trainer"><div><div class="label">Start here</div><h2>Note Trainer</h2><p>Identify treble and bass notes by playing the displayed pitch.</p><code>notationlab.pages.dev/?tab=read&amp;utm_content=note-trainer</code></div></article>
+      <article class="qr-card"><img src="/assets/qr/sight-reading.svg" alt="QR code for Sight-Reading"><div><div class="label">Read melodies</div><h2>Sight-Reading</h2><p>Follow an unfamiliar melody and build accurate reading speed.</p><code>notationlab.pages.dev/?tab=sight&amp;utm_content=sight-reading</code></div></article>
+      <article class="qr-card"><img src="/assets/qr/rhythm-lab.svg" alt="QR code for Rhythm Lab"><div><div class="label">Train timing</div><h2>Rhythm Lab</h2><p>Tap simple, compound, additive, odd and changing metres.</p><code>notationlab.pages.dev/?tab=rhythm&amp;utm_content=rhythm-lab</code></div></article>
+      <article class="qr-card"><img src="/assets/qr/composer.svg" alt="QR code for Composer"><div><div class="label">Write music</div><h2>Composer</h2><p>Perform notes into a conventional notation score and export MIDI.</p><code>notationlab.pages.dev/?tab=compose&amp;utm_content=composer</code></div></article>
+      <article class="qr-card"><img src="/assets/qr/ear-training.svg" alt="QR code for Ear Training"><div><div class="label">Hear pitches</div><h2>Ear Training</h2><p>Hear a pitch or interval, then reproduce it on the keyboard.</p><code>notationlab.pages.dev/?tab=ear&amp;utm_content=ear-training</code></div></article>
+      <article class="qr-card"><img src="/assets/qr/eight-week-course.svg" alt="QR code for the eight-week course"><div><div class="label">Follow the plan</div><h2>Eight-Week Course</h2><p>Open the structured course and daily practice checkpoints.</p><code>notationlab.pages.dev/?tab=roadmap&amp;utm_content=eight-week-course</code></div></article>
+    </section>
+    <p class="footer">Canonical destination: <a href="https://notationlab.pages.dev/">https://notationlab.pages.dev/</a> · Keep one code per placement so the <code style="display:inline;padding:2px 4px">utm_content</code> value identifies which printed item generated the visit. Do not edit the QR artwork after printing.</p>
+  </main>
+</body>
+</html>
