@@ -8,6 +8,7 @@ const ads = fs.readFileSync(path.join(dist, 'assets', 'ads.js'), 'utf8');
 const vex = fs.readFileSync(path.join(dist, 'assets', 'vexflow-4.2.5.js'), 'utf8');
 const engraving = fs.readFileSync(path.join(dist, 'assets', 'engraving.js'), 'utf8');
 const index = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
+const qr = fs.readFileSync(path.join(dist, 'qr', 'index.html'), 'utf8');
 
 function requireText(text, pattern, label) {
   if (!pattern.test(text)) throw new Error(`missing ${label}`);
@@ -61,10 +62,16 @@ requireText(engraving, /drawMeterAwareBeams/, 'meter-aware Composer beam rendere
 requireText(engraving, /marginRight = "18px"/, 'separated Composer bar systems');
 if (index.includes('notation-lab-music.halecrab10.chatgpt.site')) throw new Error('retired hostname remains in public metadata');
 requireText(index, /href="https:\/\/notationlab\.pages\.dev\//, 'canonical public URL');
-requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261111-ad-layout-1" defer><\/script><script src="\/assets\/app\.js\?v=20261111-ad-layout-1" defer><\/script><script src="\/assets\/engraving\.js\?v=20261111-ad-layout-1" defer><\/script>/, 'versioned deferred app scripts');
-requireText(index, /<script src="\/assets\/ads\.js\?v=20261111-ad-layout-1" defer><\/script>/, 'versioned advertising loader');
+requireText(index, /<script src="\/assets\/vexflow-4\.2\.5\.js\?v=20261111-consent-qr-1" defer><\/script><script src="\/assets\/app\.js\?v=20261111-consent-qr-1" defer><\/script><script src="\/assets\/engraving\.js\?v=20261111-consent-qr-1" defer><\/script>/, 'versioned deferred app scripts');
+requireText(index, /<script src="\/assets\/ads\.js\?v=20261111-consent-qr-1" defer><\/script>/, 'versioned advertising loader');
 requireText(index, /ca-pub-8148335548762723/, 'AdSense publisher metadata');
 requireText(ads, /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=/, 'AdSense site tag source');
 requireText(ads, /function ensureAdSenseTag\(\)/, 'AdSense tag guard');
 requireText(index, /id="top-layout-reservation"/, 'top ad reservation');
+requireText(app, /requestedTab = String\(\(window\.location\.search\.match/, 'QR deep-link tab selection');
+requireText(qr, /name="robots" content="noindex,nofollow"/, 'QR utility page indexing guard');
+if ((qr.match(/utm_content=/g) || []).length !== 6) throw new Error('QR page does not contain six unique tracked destinations');
+for (const name of ['note-trainer', 'sight-reading', 'rhythm-lab', 'composer', 'ear-training', 'eight-week-course']) {
+  if (!fs.existsSync(path.join(dist, 'assets', 'qr', `${name}.svg`))) throw new Error(`missing QR artwork: ${name}`);
+}
 console.log('PASS: ES2015 syntax floor, runtime fallbacks, touch/mouse input, audio/MIDI detection, public metadata and cacheable assets');
