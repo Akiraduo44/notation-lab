@@ -1876,6 +1876,8 @@ renderRhythm();
 renderComposition();
 newEar();
 document.querySelectorAll("#tabs button").forEach((x) => x.onclick = () => tab(x.dataset.tab));
+const requestedTab = String((window.location.search.match(/[?&]tab=([^&]+)/) || ["", ""])[1]).toLowerCase();
+if (["read", "sight", "rhythm", "compose", "ear", "roadmap"].indexOf(requestedTab) >= 0) tab(requestedTab);
 $("connectMidi").onclick = connectMidi;
 $("nextRead").onclick = newRead;
 $("revealRead").onclick = () => {
