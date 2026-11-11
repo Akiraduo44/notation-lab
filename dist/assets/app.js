@@ -328,6 +328,13 @@ function ensureAdSlots() {
       slot.innerHTML = "<span>Advertising space reserved</span>";
       aside.append(slot);
     }
+    let heading = aside.firstElementChild && aside.firstElementChild.tagName === "H2" ? aside.firstElementChild : null;
+    if (heading) {
+      let next = heading.nextElementSibling;
+      if (next !== slot) aside.insertBefore(slot, next);
+    } else if (aside.firstElementChild !== slot) {
+      aside.insertBefore(slot, aside.firstElementChild);
+    }
     let label = slot.querySelector("span");
     if (label) label.textContent = "Advertising space reserved";
     if (providerReady) {

@@ -46,6 +46,7 @@ must(engraving, /actual-bad/, 'incorrect played-note styling');
 must(engraving, /window\.notationLabComparison/, 'comparison renderer export');
 must(app, /function ensureAdSlots\(\)/, 'reserved ad placements');
 must(app, /const trainingTabs = \["read", "sight", "rhythm", "compose", "ear", "roadmap"\]/, 'right-rail placement on every tab');
+must(app, /let heading = aside\.firstElementChild[^;]+tagName === "H2"/, 'right-rail placement below panel heading');
 must(app, /function installResponsiveStyles\(\)/, 'responsive mobile layout styles');
 must(app, /window\.NotationLabAdsRefresh\(\)/, 'visible-tab ad refresh');
 must(app, /\.layout-reservation ins\.adsbygoogle[^`]+width: 100% !important/, 'contained responsive ad units');
@@ -54,5 +55,6 @@ must(app, /d\.seconds >= dailyTargets\[task\] && d\.inputs >= 5 && d\.success >=
 must(app, /box\.checked = dailyComplete\(t, daily\)/, 'automatic daily checkbox update');
 must(index, /id="top-layout-reservation"/, 'top ad reservation');
 must(index, /id="roadmap"[\s\S]*side-reservation/, 'course right-rail ad reservation');
-must(index, /assets\/engraving\.js\?v=20261111-rail4/, 'versioned engraving asset');
+must(index, /id="roadmap"[\s\S]*<h2>Daily practice • 30 minutes<\/h2><div class="layout-reservation side-reservation"/, 'course rail starts beside course content');
+must(index, /assets\/engraving\.js\?v=20261111-rail5/, 'versioned engraving asset');
 console.log('PASS: input lifecycle, same-staff feedback, constrained sight range, deterministic hints, metronome-independent taps, performance engraving, Composer beams and ad reservation');
