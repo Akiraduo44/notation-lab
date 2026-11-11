@@ -228,6 +228,53 @@ function installInteractionStyles() {
   style.textContent = "button{transition:transform .08s ease,box-shadow .12s ease,background-color .12s ease,filter .12s ease;-webkit-tap-highlight-color:rgba(141,153,255,.28);touch-action:manipulation}button:focus-visible{outline:3px solid #aab1ff;outline-offset:3px}button:active,button.button-pressed{transform:translateY(1px) scale(.98);filter:brightness(1.18);box-shadow:0 0 0 3px rgba(141,153,255,.28),0 4px 14px rgba(20,30,54,.45)}button.button-pressed{background:#4f5ca0!important}.writing-score[hidden]{display:none!important}.training-score-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(235px,.72fr);gap:12px;align-items:stretch;margin:10px 0 14px}.training-score-column{min-width:0}.training-score-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#9faaff;margin:0 0 6px 3px}.target-score .score{margin:0}.played-score{background:#f8f9fc;border-radius:14px;padding:10px;color:#263650;min-height:190px;overflow:hidden}.played-score .training-score-label{color:#52607d;margin-left:0}.played-note-copy{display:grid;gap:3px;min-height:46px}.played-note-copy strong{font-size:20px;font-weight:800}.played-note-copy small{color:#52607d;font-size:12px}.played-note-staff{margin-top:8px;min-height:100px;overflow:auto}.played-note-staff svg{width:auto;max-width:none;height:auto;display:block}.played-note-pulse{animation:playedNotePulse .2s ease}@keyframes playedNotePulse{50%{box-shadow:0 0 0 5px rgba(141,153,255,.24)}}.layout-reservation{border:1px solid #34425c;border-radius:12px;background:rgba(13,22,39,.55);color:#8495b7;min-height:92px;padding:12px;text-align:center}.layout-reservation>span{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase}.layout-reservation ins{display:block}.top-reservation{margin:0 0 18px;min-height:78px}.side-reservation{margin-top:18px;min-height:250px;display:flex;flex-direction:column;justify-content:center}@media(max-width:850px){.training-score-row{grid-template-columns:1fr}.played-score{min-height:170px}.side-reservation{min-height:120px}}";
   document.head.append(style);
 }
+function installResponsiveStyles() {
+  if (document.getElementById("notationLabResponsiveStyles")) return;
+  let style = document.createElement("style");
+  style.id = "notationLabResponsiveStyles";
+  style.textContent = `
+    .layout-reservation { width: 100%; max-width: 100%; overflow: hidden; contain: layout paint; }
+    .layout-reservation ins.adsbygoogle,
+    .layout-reservation ins.adsbygoogle iframe { display: block !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box; }
+    @media (max-width: 850px) {
+      .shell { padding: 12px 10px 20px; }
+      .top { align-items: flex-start; gap: 12px; }
+      .brand { font-size: 21px; }
+      .status { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+      .status button { flex: 1 1 150px; }
+      .nav { margin: 16px -10px 14px; padding: 0 10px 4px; gap: 6px; scrollbar-width: thin; }
+      .nav button { flex: 0 0 auto; white-space: nowrap; padding: 9px 11px; font-size: 13px; }
+      .hero { padding: 17px; border-radius: 14px; margin-bottom: 12px; }
+      .hero h1 { font-size: 22px; line-height: 1.2; }
+      .hero p { font-size: 14px; line-height: 1.45; }
+      .grid { gap: 12px; }
+      .panel { padding: 15px; border-radius: 14px; }
+      .controls { gap: 8px; }
+      .controls label { flex: 1 1 150px; min-width: 0; }
+      .controls select, .controls input { min-width: 0; max-width: 100%; }
+      .training-score-row { display: block; }
+      .target-score { margin-bottom: 12px; }
+      .played-score { min-height: 135px; padding: 9px; }
+      .played-note-staff { min-height: 84px; margin-top: 6px; overflow-x: auto; }
+      .layout-reservation { border: 0; background: transparent; border-radius: 0; padding: 0; min-height: 0; }
+      .layout-reservation > span { display: none; }
+      .top-reservation { min-height: 0; margin-bottom: 12px; }
+      .side-reservation { min-height: 0; margin-top: 12px; padding: 0; }
+      .keys { height: 126px; margin-top: 12px; }
+      .keys .white span { font-size: 10px; bottom: 7px; }
+      .small { font-size: 12px; }
+    }
+    @media (max-width: 480px) {
+      .status { font-size: 12px; }
+      .status button { flex-basis: 100%; }
+      .controls > button { flex: 1 1 135px; }
+      .mastery-labels { font-size: 10px; }
+      .score { padding: 7px; }
+      .keys { height: 112px; }
+    }
+  `;
+  document.head.append(style);
+}
 const trainingTabs = ["read", "sight", "rhythm", "compose", "ear"];
 let liveNotesByTab = /* @__PURE__ */ new Map();
 function ensureTrainingDisplays() {
@@ -638,7 +685,7 @@ function attachMidi() {
     setMidiStatus(`${n} MIDI input${n === 1 ? "" : "s"} connected${shown ? " \xB7 " + shown : ""}`, true);
     $("connectMidi").textContent = "Rescan MIDI";
   } else {
-    setMidiStatus("MIDI ready \xB7 connect a keyboard", false);
+    setMidiStatus("Web MIDI available \xB7 no device connected", false);
     $("connectMidi").textContent = "Connect MIDI";
   }
 }
@@ -661,7 +708,7 @@ function requestMidi(manual) {
     return null;
   }
   if (midiRequest) return midiRequest;
-  setMidiStatus(manual ? "Requesting MIDI access\u2026" : "Detecting MIDI keyboard\u2026", false);
+  setMidiStatus(manual ? "Requesting MIDI access\u2026" : "Detecting Web MIDI devices\u2026", false);
   try {
     midiRequest = navigator.requestMIDIAccess({ sysex: false });
   } catch (error) {
@@ -941,6 +988,7 @@ function tab(name) {
   currentTab = name;
   document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("hidden", x.id !== name));
   document.querySelectorAll("#tabs button").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
+  if (typeof window.NotationLabAdsRefresh === "function") window.NotationLabAdsRefresh();
   renderTrainingPlayed(name, liveNotesByTab.get(name));
   const titles = { read: ["Learn notation by playing it.", "Read a note on the staff, then play it on your MIDI keyboard. Build speed and accuracy."], sight: ["Sight-read actual melodies.", "Follow the highlighted note through an unfamiliar phrase, without needing to memorise it first."], rhythm: ["Train your internal clock.", "Learn written rhythms by tapping against a metronome and measuring timing accuracy."], compose: ["Write music by performing it.", "Enter notes with your MIDI keyboard, play your composition and export it to Logic Pro."], ear: ["Connect sound to notation.", "Hear a note or interval, reproduce it and strengthen your musical ear."], roadmap: ["Your eight-week learning path.", "Follow a structured course with 30 minutes of deliberate practice per day."] };
   $("heroTitle").textContent = titles[name][0];
@@ -1811,6 +1859,7 @@ tapBeat = function() {
   $("rhythmFeedback").textContent = deviation <= tolerance ? "On time." : "Listen to the pulse and adjust the next tap.";
 };
 installInteractionStyles();
+installResponsiveStyles();
 setupButtonFeedback();
 ensureTrainingDisplays();
 ensureAdSlots();
@@ -1950,7 +1999,7 @@ window.addEventListener("blur", () => {
 });
 installLearning();
 if (navigator.requestMIDIAccess) {
-  $("midiStatus").textContent = "Detecting MIDI keyboard\u2026";
+  $("midiStatus").textContent = "Detecting Web MIDI devices\u2026";
   $("connectMidi").disabled = false;
   requestMidi(false);
   window.addEventListener("focus", () => {
